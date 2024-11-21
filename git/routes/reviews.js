@@ -55,11 +55,34 @@ router.post('/', function(req, res, next) {
   res.sendStatus(201);
 });
 
+/*PUT review*/
+router.put('/:reviewID', (req, res) => {
+  const reviewID = parseInt(req.params.reviewID);
+  const review = reviews.find(review => review.reviewID === reviewID);
+  if (review) {
+    const index = reviews.indexOf(review);
+    const keys = Object.keys(req.body);
+    keys.forEach(key => {
+      review[key] = req.body[key];
+    });
+    reviews[index] = review;
+    res.json(review);
+  } else {
+    res.status(404).json({ message: "Review not found." });
+  }
+}); 
 
-
-
-
-
-
+/*DELETE review*/
+router.delete('/:reviewID', (req, res) => {
+  const reviewID = parseInt(req.params.reviewID);
+  const review = reviews.find(review => review.reviewID === reviewID);
+  if (review) {
+    const index = reviews.indexOf(review);
+    reviews.splice(index, 1);
+    res.sendStatus(204);
+  } else {
+    res.status(404).json({ message: "Review not found." });
+  }
+});
 
 module.exports = router;
