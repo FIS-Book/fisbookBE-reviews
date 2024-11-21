@@ -18,23 +18,11 @@ router.get('/', function(req, res, next) {
 /* GET all reviews of a book*/
 router.get('/books/:bookID', function(req, res, next) {
   var id = parseInt(req.params.bookID);
-  const bookReviews = reviews.find(review => review.bookID === id);
+  const bookReviews = reviews.filter(review => review.bookID === id);
   if (bookReviews) {
     res.json(bookReviews);
   } else {
     res.status(404).json({ message: "No reviews found for this book." });
-  }
-});
-/* GET 1 book reviews by bookId   */
-router.get('/:id/books', function(req, res, next) {
-  var id = req.params.id;
-  var result = bookReviews.find(br => {
-    return br.bookID === id;
-  });
-  if(result){
-    res.send(result);
-  }else{
-    res.sendStatus(404);
   }
 });
 
@@ -49,10 +37,10 @@ router.get('/:reviewID', (req, res) => {
   }
 });
 
-/* GET reading lists reviews. */
+/* GET all reviews of a reading list */
 router.get('/reading_lists/:readingListID', (req, res) => {
   const readingListID = parseInt(req.params.readingListID);
-  const listReviews = reviews.find(review => review.readingListID === readingListID);
+  const listReviews = reviews.filter(review => review.readingListID === readingListID);
   if (listReviews) {
     res.json(listReviews);
   } else {
@@ -67,11 +55,34 @@ router.post('/', function(req, res, next) {
   res.sendStatus(201);
 });
 
+/*PUT review*/
+router.put('/:reviewID', (req, res) => {
+  const reviewID = parseInt(req.params.reviewID);
+  const review = reviews.find(review => review.reviewID === reviewID);
+  if (review) {
+    const index = reviews.indexOf(review);
+    const keys = Object.keys(req.body);
+    keys.forEach(key => {
+      review[key] = req.body[key];
+    });
+    reviews[index] = review;
+    res.json(review);
+  } else {
+    res.status(404).json({ message: "Review not found." });
+  }
+}); 
 
-
-
-
-
-
+/*DELETE review*/
+router.delete('/:reviewID', (req, res) => {
+  const reviewID = parseInt(req.params.reviewID);
+  const review = reviews.find(review => review.reviewID === reviewID);
+  if (review) {
+    const index = reviews.indexOf(review);
+    reviews.splice(index, 1);
+    res.sendStatus(204);
+  } else {
+    res.status(404).json({ message: "Review not found." });
+  }
+});
 
 module.exports = router;
