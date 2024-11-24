@@ -1,24 +1,22 @@
 {
   "name": "fisbookbe-reviews",
-  "version": "0.0.1",
-  "description": "This is the microservice dedicated to the reviews in the FISBook app",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "version": "0.0.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/FIS-Book/fisbookBE-reviews.git"
+    "url": "https://github.com/FIS-Book/fisbookBE-reviews.git"
   },
-  "author": "Lepore, Donato and López Durán, Noelia",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/FIS-Book/fisbookBE-reviews/issues"
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
   },
-  "homepage": "https://github.com/FIS-Book/fisbookBE-reviews#readme",
   "dependencies": {
-    "express": "^4.21.1",
-    "fisbookbe-reviews": "file:"
+    "axios": "^1.7.7",
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "dotenv": "^16.4.5",
+    "express": "~4.16.1",
+    "mongoose": "^8.8.2",
+    "morgan": "~1.9.1",
+    "url-join": "^4.0.1"
   }
 }
