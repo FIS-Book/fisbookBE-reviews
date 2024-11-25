@@ -35,12 +35,12 @@ router.get('/books', async function(req, res, next) {
     var books_reviews = await BookReview.find();
     console.log(books_reviews);
     if(books_reviews.length == 0){
-      res.status(404).json({ message: "No reviews of books found." });
+      return res.status(404).json({ message: "No reviews of books found." });
     }
-    res.json(books_reviews); 
+    return res.json(books_reviews); 
   }catch(err){
     console.error("DB problem",err);
-    res.sendStatus(500);
+    return res.sendStatus(500);
   }
 });
 
@@ -50,16 +50,14 @@ router.get('/reading_lists', async function(req, res, next) {
     var reading_lists_reviews = await ReadingListReview.find();
     console.log(reading_lists_reviews);
     if(reading_lists_reviews.length == 0){
-      res.status(404).json({ message: "No reviews of reading lists found." });
+      return res.status(404).json({ message: "No reviews of reading lists found." });
     }
-    res.json(reading_lists_reviews); 
+    return res.json(reading_lists_reviews); 
   }catch(err){
     console.error("DB problem",err);
     res.sendStatus(500);
   }
 });
-
-
 
 /* GET all reviews of a book*/
 router.get('/books/:bookID', async function(req, res, next) {
@@ -69,9 +67,9 @@ router.get('/books/:bookID', async function(req, res, next) {
     var book_reviews = await BookReview.find({book_id : id});
     console.log(book_reviews);
     if(book_reviews.length == 0){
-      res.status(404).json({ message: "No reviews found for this book." });
+      return res.status(404).json({ message: "No reviews found for this book." });
     }
-    res.json(book_reviews); 
+    return res.json(book_reviews); 
   }catch(err){
     console.error("DB problem",err);
     res.sendStatus(500);
@@ -86,9 +84,9 @@ router.get('/reading_lists/:readingListID', async function(req, res, next) {
     var reading_list_reviews = await ReadingListReview.find({reading_list_id : id});
     console.log(reading_list_reviews);
     if(reading_list_reviews.length == 0){
-      res.status(404).json({ message: "No reviews found for this reading list." });
+      return res.status(404).json({ message: "No reviews found for this reading list." });
     }
-    res.json(reading_list_reviews); 
+    return res.json(reading_list_reviews); 
   }catch(err){
     console.error("DB problem",err);
     res.sendStatus(500);
