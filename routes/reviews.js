@@ -29,6 +29,38 @@ var reviews = [
   }
 })}
 
+/* GET reviews of every book*/
+router.get('/books', async function(req, res, next) {
+  try{
+    var books_reviews = await BookReview.find();
+    console.log(books_reviews);
+    if(books_reviews.length == 0){
+      res.status(404).json({ message: "No reviews of books found." });
+    }
+    res.json(books_reviews); 
+  }catch(err){
+    console.error("DB problem",err);
+    res.sendStatus(500);
+  }
+});
+
+/* GET reviews of every reading list*/
+router.get('/reading_lists', async function(req, res, next) {
+  try{
+    var reading_lists_reviews = await ReadingListReview.find();
+    console.log(reading_lists_reviews);
+    if(reading_lists_reviews.length == 0){
+      res.status(404).json({ message: "No reviews of reading lists found." });
+    }
+    res.json(reading_lists_reviews); 
+  }catch(err){
+    console.error("DB problem",err);
+    res.sendStatus(500);
+  }
+});
+
+
+
 /* GET all reviews of a book*/
 router.get('/books/:bookID', async function(req, res, next) {
   var id = req.params.bookID;
@@ -40,6 +72,23 @@ router.get('/books/:bookID', async function(req, res, next) {
       res.status(404).json({ message: "No reviews found for this book." });
     }
     res.json(book_reviews); 
+  }catch(err){
+    console.error("DB problem",err);
+    res.sendStatus(500);
+  }
+});
+
+/* GET all reviews of a readinglist*/
+router.get('/reading_lists/:readingListID', async function(req, res, next) {
+  var id = req.params.readingListID;
+  //console.log("Tipo e valore di id:", typeof id, id);
+  try{
+    var reading_list_reviews = await ReadingListReview.find({reading_list_id : id});
+    console.log(reading_list_reviews);
+    if(reading_list_reviews.length == 0){
+      res.status(404).json({ message: "No reviews found for this reading list." });
+    }
+    res.json(reading_list_reviews); 
   }catch(err){
     console.error("DB problem",err);
     res.sendStatus(500);
@@ -58,17 +107,6 @@ router.get('/:reviewID', (req, res) => {
   }
 });
 
-/* GET all reviews of a reading list */
-router.get('/reading_lists/:readingListID', (req, res) => {
-  const readingListID = parseInt(req.params.readingListID);
-  const listReviews = reviews.filter(review => review.readingListID === readingListID);
-  if (listReviews) {
-    res.json(listReviews);
-  } else {
-    res.status(404).json({ message: "No reviews found for this reading list." });
-  }
-});
-
 /*POST review*/
 router.post('/', function(req, res, next) {
   var review = req.body;
@@ -76,20 +114,85 @@ router.post('/', function(req, res, next) {
   res.sendStatus(201);
 });
 
-/*PUT review*/
-router.put('/:reviewID', (req, res) => {
-  const reviewID = parseInt(req.params.reviewID);
-  const review = reviews.find(review => review.reviewID === reviewID);
-  if (review) {
-    const index = reviews.indexOf(review);
-    const keys = Object.keys(req.body);
-    keys.forEach(key => {
-      review[key] = req.body[key];
-    });
-    reviews[index] = review;
-    res.json(review);
-  } else {
-    res.status(404).json({ message: "Review not found." });
+/* POST a review of a book*/
+router.post('/books',async function(req, res,next){
+  var {user_id ,book_id, score, title, comment} = req.body;
+  const book_review = new BookReview({user_id,book_id,score,title,comment});
+  try{
+    await book_review.save();
+    return res.sendStatus(201);
+  }catch(err){
+    if(err.name==='ValidationError'){
+      return res.status(400).send(err.message);
+    }
+    debug("DB problem",err);
+    res.sendStatus(500);
+  }
+})
+
+/* POST a review of a reading list */
+router.post('/reading_lists',async function(req, res,next){
+  var {user_id ,reading_list_id, score, comment} = req.body;
+  const reading_list_review = new ReadingListReview({user_id,reading_list_id,score,comment});
+  try{
+    await reading_list_review.save();
+    return res.sendStatus(201);
+  }catch(err){
+    if(err.name==='ValidationError'){
+      return res.status(400).send(err.message);
+    }
+    debug("DB problem",err);
+    res.sendStatus(500);
+  }
+})
+
+/*PUT review of a book*/
+router.put('/books/:reviewID', async function(req, res,next){
+  const reviewID = req.params.reviewID;
+  var {score, title, comment} = req.body;
+  try{
+    const updatedReview = await BookReview.findByIdAndUpdate(
+      reviewID,
+      { score, title, comment },
+      { new: true, runValidators: true }
+    );
+    if (!updatedReview) {
+      return res.status(404).json({ message: "Review not found." });
+    }else{
+      return res.status(201).json(updatedReview);
+    }
+    
+  }catch(err){
+    if(err.name==='ValidationError'){
+      return res.status(400).send(err.message);
+    }
+    debug("DB problem",err);
+    res.sendStatus(500);
+  }
+}); 
+
+/*PUT review of a reading list*/
+router.put('/reading_lists/:reviewID', async function(req, res,next){
+  const reviewID = req.params.reviewID;
+  var {score, comment} = req.body;
+  try{
+    const updatedReview = await ReadingListReview.findByIdAndUpdate(
+      reviewID,
+      { score, comment },
+      { new: true, runValidators: true }
+    );
+    if (!updatedReview) {
+      return res.status(404).json({ message: "Review not found." });
+    }else{
+      return res.status(201).json(updatedReview);
+    }
+    
+  }catch(err){
+    if(err.name==='ValidationError'){
+      return res.status(400).send(err.message);
+    }
+    debug("DB problem",err);
+    res.sendStatus(500);
   }
 }); 
 

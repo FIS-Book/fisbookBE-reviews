@@ -2,11 +2,11 @@ const mongoose = require('mongoose');
 
 // Schema per la recensione della lista di lettura
 const readingListReviewSchema = new mongoose.Schema({
-    readingListID: {
+    reading_list_id: {
       type: String,
       required: true
     },
-    userID: {
+    user_id: {
       type: String,
       required: true
     },
