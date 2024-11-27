@@ -23,6 +23,10 @@ const readingListReviewSchema = new mongoose.Schema({
     createdAt: {
       type: Date,
       default: Date.now
+    },
+    lastUpdate:{
+      type: Date,
+      default: Date.now
     }
   },{ collection: 'reading_list_reviews'});
   

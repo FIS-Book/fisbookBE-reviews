@@ -165,7 +165,7 @@ router.put('/books/:reviewID', async function(req, res,next){
   try{
     const updatedReview = await BookReview.findByIdAndUpdate(
       reviewID,
-      { score, title, comment },
+      { score, title, comment, lastUpdate: Date.now() },
       { new: true, runValidators: true }
     );
     if (!updatedReview) {
@@ -190,7 +190,7 @@ router.put('/reading_lists/:reviewID', async function(req, res,next){
   try{
     const updatedReview = await ReadingListReview.findByIdAndUpdate(
       reviewID,
-      { score, comment },
+      { score, comment, lastUpdate: Date.now() },
       { new: true, runValidators: true }
     );
     if (!updatedReview) {
@@ -198,7 +198,7 @@ router.put('/reading_lists/:reviewID', async function(req, res,next){
     }else{
       return res.status(201).json(updatedReview);
     }
-    
+
   }catch(err){
     if(err.name==='ValidationError'){
       return res.status(400).send(err.message);

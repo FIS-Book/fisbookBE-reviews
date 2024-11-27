@@ -27,6 +27,10 @@ const bookReviewSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  lastUpdate:{
+    type: Date,
+    default: Date.now
   }
 },{collection: 'book_reviews'});
 
