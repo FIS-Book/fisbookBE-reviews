@@ -59,8 +59,8 @@ router.get('/reading_lists', async function(req, res, next) {
   }
 });
 
-/* GET all reviews of a book*/
-router.get('/books/:bookID', async function(req, res, next) {
+/* GET all reviews of a specified book*/
+router.get('/books/bk/:bookID', async function(req, res, next) {
   var id = req.params.bookID;
   //console.log("Tipo e valore di id:", typeof id, id);
   try{
@@ -76,8 +76,8 @@ router.get('/books/:bookID', async function(req, res, next) {
   }
 });
 
-/* GET all reviews of a readinglist*/
-router.get('/reading_lists/:readingListID', async function(req, res, next) {
+/* GET all reviews of a specified readinglist*/
+router.get('/reading_lists/rl/:readingListID', async function(req, res, next) {
   var id = req.params.readingListID;
   //console.log("Tipo e valore di id:", typeof id, id);
   try{
@@ -92,24 +92,38 @@ router.get('/reading_lists/:readingListID', async function(req, res, next) {
     res.sendStatus(500);
   }
 });
-
-
-/* GET 1 review by reviewID   */
-router.get('/:reviewID', (req, res) => {
-  const reviewID = parseInt(req.params.reviewID);
-  const review = reviews.find(review => review.reviewID === reviewID);
-  if (review) {
-    res.json(review);
-  } else {
-    res.status(404).json({ message: "Review not found." });
+/* GET a review of a readinglist by review ID*/
+router.get('/reading_lists/rev/:reviewID', async function(req, res, next) {
+  const reviewId = req.params.reviewID;
+  //console.log("Tipo e valore di id:", typeof id, id);
+  try{
+    var reading_list_review = await ReadingListReview.findById(reviewId);
+    console.log(reading_list_review);
+    if(reading_list_review.length == 0){
+      return res.status(404).json({ message: "No reviews found for this reading list." });
+    }
+    return res.json(reading_list_review); 
+  }catch(err){
+    console.error("DB problem",err);
+    return res.sendStatus(500);
   }
 });
 
-/*POST review*/
-router.post('/', function(req, res, next) {
-  var review = req.body;
-  reviews.push(review);
-  res.sendStatus(201);
+/* GET a review of a book by review ID*/
+router.get('/books/rev/:reviewID', async function(req, res, next) {
+  const reviewId = req.params.reviewID;
+  console.log("Tipo e valore di id:", typeof reviewID, reviewId);
+  try{
+    var book_review = await BookReview.findById(reviewId);
+    console.log(book_review);
+    if(book_review.length == 0){
+      return res.status(404).json({ message: "No reviews found for this reading list." });
+    }
+    return res.json(book_review); 
+  }catch(err){
+    console.error("DB problem",err);
+    return res.sendStatus(500);
+  }
 });
 
 /* POST a review of a book*/
@@ -144,7 +158,7 @@ router.post('/reading_lists',async function(req, res,next){
   }
 })
 
-/*PUT review of a book*/
+/*PUT a review of a book*/
 router.put('/books/:reviewID', async function(req, res,next){
   const reviewID = req.params.reviewID;
   var {score, title, comment} = req.body;
@@ -169,7 +183,7 @@ router.put('/books/:reviewID', async function(req, res,next){
   }
 }); 
 
-/*PUT review of a reading list*/
+/*PUT a review of a reading list*/
 router.put('/reading_lists/:reviewID', async function(req, res,next){
   const reviewID = req.params.reviewID;
   var {score, comment} = req.body;
@@ -194,17 +208,39 @@ router.put('/reading_lists/:reviewID', async function(req, res,next){
   }
 }); 
 
-/*DELETE review*/
-router.delete('/:reviewID', (req, res) => {
-  const reviewID = parseInt(req.params.reviewID);
-  const review = reviews.find(review => review.reviewID === reviewID);
-  if (review) {
-    const index = reviews.indexOf(review);
-    reviews.splice(index, 1);
-    res.sendStatus(204);
-  } else {
-    res.status(404).json({ message: "Review not found." });
+
+/*DELETE a review of a reading list*/
+router.delete('/reading_lists/:reviewID', async function(req, res,next){
+  const reviewID = req.params.reviewID;
+  try {
+    const deletedList = await ReadingListReview.findByIdAndDelete(reviewID);
+
+    if (!deletedList) {
+      return res.status(404).json({ message: 'Reading list not found.' });
+    }
+
+    return res.status(200).json({ message: 'Reading list deleted successfully.' });
+  } catch (error) {
+    console.error("Error deleting reading list:", error);
+    return res.status(500).json({ message: 'An error occurred while deleting the reading list.' });
   }
-});
+}); 
+
+/*DELETE a review of a book*/
+router.delete('/books/:reviewID', async function(req, res,next){
+  const reviewID = req.params.reviewID;
+  try {
+    const deletedBook= await BookReview.findByIdAndDelete(reviewID);
+
+    if (!deletedBook) {
+      return res.status(404).json({ message: 'Book not found.' });
+    }
+
+    return res.status(200).json({ message: 'Book deleted successfully.' });
+  } catch (error) {
+    console.error("Error deleting Book:", error);
+    return res.status(500).json({ message: 'An error occurred while deleting the Book.' });
+  }
+}); 
 
 module.exports = router;
