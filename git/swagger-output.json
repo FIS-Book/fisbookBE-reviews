@@ -1,0 +1,150 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "FISBook Reviews API",
+    "description": "Welcome to the API documentation for the FISBook Reviews API. This API allows you to interact with the reviews of books and reading lists in the FISBook application."
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "INDEX.js endpoint",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/reviews/": {
+      "get": {
+        "summary": "Get all the reviews.",
+        "description": "Get all the reviews in the database. This endpoint doesnt divide the reviews by book or reading list.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new review.",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/v1/reviews/books/{bookID}": {
+      "get": {
+        "summary": "Show all the reviews for a specific book.",
+        "parameters": [
+          {
+            "name": "bookID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/reviews/{reviewID}": {
+      "get": {
+        "summary": "Show a specific review.",
+        "parameters": [
+          {
+            "name": "reviewID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Edit a specific review by its ID.",
+        "parameters": [
+          {
+            "name": "reviewID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an existing review by its ID.",
+        "parameters": [
+          {
+            "name": "reviewID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/reviews/reading_lists/{readingListID}": {
+      "get": {
+        "summary": "Show all the reviews for a specific reading list.",
+        "parameters": [
+          {
+            "name": "readingListID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    }
+  }
+}
