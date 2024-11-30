@@ -19,6 +19,8 @@
     "fisbookbe-reviews": "file:",
     "mongoose": "^8.8.2",
     "morgan": "~1.9.1",
+    "swagger-autogen": "^2.23.7",
+    "swagger-ui-express": "^5.0.1",
     "url-join": "^4.0.1"
   }
 }
