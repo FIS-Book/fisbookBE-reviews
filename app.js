@@ -2,6 +2,8 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const swaggerUi = require('swagger-ui-express')
+const swaggerFile = require('./swagger-output.json')
 
 var indexRouter = require('./routes/index');
 var reviewsRouter = require('./routes/reviews');
@@ -16,6 +18,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/api/v1/reviews', reviewsRouter);
+app.use('/doc', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 
 // Connect to MongoDB
 const mongoose = require('mongoose');
