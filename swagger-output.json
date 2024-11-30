@@ -8,7 +8,7 @@
   "paths": {
     "/": {
       "get": {
-        "summary": "INDEX.js endpoint",
+        "description": "INDEX.js endpoint",
         "responses": {
           "default": {
             "description": ""
@@ -16,13 +16,19 @@
         }
       }
     },
-    "/api/v1/reviews/": {
+    "/api/v1/reviews/books": {
       "get": {
-        "summary": "Get all the reviews.",
-        "description": "Get all the reviews in the database. This endpoint doesnt divide the reviews by book or reading list.",
+        "summary": "Get all the reviews of every book",
+        "description": "Get all the reviews of books in the database",
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       },
@@ -31,13 +37,98 @@
         "responses": {
           "201": {
             "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {
+                    "example": "1"
+                  },
+                  "book_id": {
+                    "example": "1"
+                  },
+                  "score": {
+                    "example": "5"
+                  },
+                  "title": {
+                    "example": "Nice book"
+                  },
+                  "comment": {
+                    "example": "I really enjoyed this book"
+                  }
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/v1/reviews/books/{bookID}": {
+    "/api/v1/reviews/reading_lists": {
       "get": {
-        "summary": "Show all the reviews for a specific book.",
+        "description": "Get all the reviews of every reading list",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "post": {
+        "description": "Create a review for a reading list",
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_id": {
+                    "example": "1"
+                  },
+                  "reading_list_id": {
+                    "example": "1"
+                  },
+                  "score": {
+                    "example": "3"
+                  },
+                  "comment": {
+                    "example": "Not bad!"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reviews/books/bk/{bookID}": {
+      "get": {
+        "description": "",
         "parameters": [
           {
             "name": "bookID",
@@ -54,78 +145,16 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
     },
-    "/api/v1/reviews/{reviewID}": {
+    "/api/v1/reviews/reading_lists/rl/{readingListID}": {
       "get": {
-        "summary": "Show a specific review.",
-        "parameters": [
-          {
-            "name": "reviewID",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      },
-      "put": {
-        "summary": "Edit a specific review by its ID.",
-        "parameters": [
-          {
-            "name": "reviewID",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete an existing review by its ID.",
-        "parameters": [
-          {
-            "name": "reviewID",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/api/v1/reviews/reading_lists/{readingListID}": {
-      "get": {
-        "summary": "Show all the reviews for a specific reading list.",
+        "description": "",
         "parameters": [
           {
             "name": "readingListID",
@@ -142,6 +171,204 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/reviews/reading_lists/rev/{reviewID}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "reviewID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/reviews/books/rev/{reviewID}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "reviewID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/reviews/books/{reviewID}": {
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "reviewID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "example": "any"
+                  },
+                  "title": {
+                    "example": "any"
+                  },
+                  "comment": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "reviewID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/reviews/reading_lists/{reviewID}": {
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "reviewID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "example": "any"
+                  },
+                  "comment": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "reviewID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
