@@ -19,9 +19,6 @@ var reviews = [
   try{
     var book_reviews = await BookReview.find();
     var reading_list_reviews = await ReadingListReview.find();
-    console.log(book_reviews);
-    console.log(reading_list_reviews);
-  
     res.json({book_reviews,reading_list_reviews}); 
   }catch(err){
     debug("DB problem",err);
@@ -33,7 +30,7 @@ var reviews = [
 router.get('/books', async function(req, res, next) {
   try{
     var books_reviews = await BookReview.find();
-    console.log(books_reviews);
+    //console.log(books_reviews);
     if(books_reviews.length == 0){
       return res.status(404).json({ message: "No reviews of books found." });
     }
@@ -48,7 +45,7 @@ router.get('/books', async function(req, res, next) {
 router.get('/reading_lists', async function(req, res, next) {
   try{
     var reading_lists_reviews = await ReadingListReview.find();
-    console.log(reading_lists_reviews);
+    //console.log(reading_lists_reviews);
     if(reading_lists_reviews.length == 0){
       return res.status(404).json({ message: "No reviews of reading lists found." });
     }
@@ -65,7 +62,7 @@ router.get('/books/bk/:bookID', async function(req, res, next) {
   //console.log("Tipo e valore di id:", typeof id, id);
   try{
     var book_reviews = await BookReview.find({book_id : id});
-    console.log(book_reviews);
+    //console.log(book_reviews);
     if(book_reviews.length == 0){
       return res.status(404).json({ message: "No reviews found for this book." });
     }
@@ -82,7 +79,7 @@ router.get('/reading_lists/rl/:readingListID', async function(req, res, next) {
   //console.log("Tipo e valore di id:", typeof id, id);
   try{
     var reading_list_reviews = await ReadingListReview.find({reading_list_id : id});
-    console.log(reading_list_reviews);
+    //console.log(reading_list_reviews);
     if(reading_list_reviews.length == 0){
       return res.status(404).json({ message: "No reviews found for this reading list." });
     }
@@ -99,8 +96,8 @@ router.get('/reading_lists/rev/:reviewID', async function(req, res, next) {
   try{
     var reading_list_review = await ReadingListReview.findById(reviewId);
     console.log(reading_list_review);
-    if(reading_list_review.length == 0){
-      return res.status(404).json({ message: "No reviews found for this reading list." });
+    if(reading_list_review == null){
+      return res.status(404).json({ message: "Review not found." });
     }
     return res.json(reading_list_review); 
   }catch(err){
@@ -112,12 +109,12 @@ router.get('/reading_lists/rev/:reviewID', async function(req, res, next) {
 /* GET a review of a book by review ID*/
 router.get('/books/rev/:reviewID', async function(req, res, next) {
   const reviewId = req.params.reviewID;
-  console.log("Tipo e valore di id:", typeof reviewID, reviewId);
+  //console.log("Tipo e valore di id:", typeof reviewID, reviewId);
   try{
     var book_review = await BookReview.findById(reviewId);
     console.log(book_review);
-    if(book_review.length == 0){
-      return res.status(404).json({ message: "No reviews found for this reading list." });
+    if(book_review == null){
+      return res.status(404).json({ message: "Review not found." });
     }
     return res.json(book_review); 
   }catch(err){
@@ -137,7 +134,7 @@ router.post('/books',async function(req, res,next){
     if(err.name==='ValidationError'){
       return res.status(400).send(err.message);
     }
-    debug("DB problem",err);
+    console.error("DB problem",err);
     res.sendStatus(500);
   }
 })
@@ -153,7 +150,7 @@ router.post('/reading_lists',async function(req, res,next){
     if(err.name==='ValidationError'){
       return res.status(400).send(err.message);
     }
-    debug("DB problem",err);
+    console.error("DB problem",err);
     res.sendStatus(500);
   }
 })
@@ -178,7 +175,7 @@ router.put('/books/:reviewID', async function(req, res,next){
     if(err.name==='ValidationError'){
       return res.status(400).send(err.message);
     }
-    debug("DB problem",err);
+    console.error("DB problem",err);
     res.sendStatus(500);
   }
 }); 
@@ -203,7 +200,7 @@ router.put('/reading_lists/:reviewID', async function(req, res,next){
     if(err.name==='ValidationError'){
       return res.status(400).send(err.message);
     }
-    debug("DB problem",err);
+    console.error("DB problem",err);
     res.sendStatus(500);
   }
 }); 
@@ -216,10 +213,10 @@ router.delete('/reading_lists/:reviewID', async function(req, res,next){
     const deletedList = await ReadingListReview.findByIdAndDelete(reviewID);
 
     if (!deletedList) {
-      return res.status(404).json({ message: 'Reading list not found.' });
+      return res.status(404).json({ message: 'Reading list review not found.' });
     }
 
-    return res.status(200).json({ message: 'Reading list deleted successfully.' });
+    return res.status(200).json({ message: 'Reading list review deleted successfully.' });
   } catch (error) {
     console.error("Error deleting reading list:", error);
     return res.status(500).json({ message: 'An error occurred while deleting the reading list.' });
@@ -233,13 +230,13 @@ router.delete('/books/:reviewID', async function(req, res,next){
     const deletedBook= await BookReview.findByIdAndDelete(reviewID);
 
     if (!deletedBook) {
-      return res.status(404).json({ message: 'Book not found.' });
+      return res.status(404).json({ message: 'Book Review not found.' });
     }
 
-    return res.status(200).json({ message: 'Book deleted successfully.' });
+    return res.status(200).json({ message: 'Book Review deleted successfully.' });
   } catch (error) {
     console.error("Error deleting Book:", error);
-    return res.status(500).json({ message: 'An error occurred while deleting the Book.' });
+    return res.status(500).json({ message: 'An error occurred while deleting the Book Review.' });
   }
 }); 
 
