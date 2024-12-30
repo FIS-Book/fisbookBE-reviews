@@ -4,6 +4,16 @@ const BookReview = require('../models/book_review');
 const ReadingListReview = require('../models/reading_list_review');
 
 describe('FISReviews API', () => {
+    beforeAll(() => {
+        // Mocking the console.error
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+    
+    afterAll(() => {
+        // Restore the console.error
+        console.error.mockRestore();
+    });
+    
     describe('GET /', () => {
         it('should return 200', () => {
             return request(app).get('/').then(response => {

@@ -76,10 +76,8 @@ router.get('/books/bk/:bookID', async function(req, res, next) {
 /* GET all reviews of a specified readinglist*/
 router.get('/reading_lists/rl/:readingListID', async function(req, res, next) {
   var id = req.params.readingListID;
-  //console.log("Tipo e valore di id:", typeof id, id);
   try{
     var reading_list_reviews = await ReadingListReview.find({reading_list_id : id});
-    //console.log(reading_list_reviews);
     if(reading_list_reviews.length == 0){
       return res.status(404).json({ message: "No reviews found for this reading list." });
     }
@@ -92,10 +90,8 @@ router.get('/reading_lists/rl/:readingListID', async function(req, res, next) {
 /* GET a review of a readinglist by review ID*/
 router.get('/reading_lists/rev/:reviewID', async function(req, res, next) {
   const reviewId = req.params.reviewID;
-  //console.log("Tipo e valore di id:", typeof id, id);
   try{
     var reading_list_review = await ReadingListReview.findById(reviewId);
-    console.log(reading_list_review);
     if(reading_list_review == null){
       return res.status(404).json({ message: "Review not found." });
     }
@@ -109,10 +105,8 @@ router.get('/reading_lists/rev/:reviewID', async function(req, res, next) {
 /* GET a review of a book by review ID*/
 router.get('/books/rev/:reviewID', async function(req, res, next) {
   const reviewId = req.params.reviewID;
-  //console.log("Tipo e valore di id:", typeof reviewID, reviewId);
   try{
-    var book_review = await BookReview.findById(reviewId);
-    console.log(book_review);
+    var book_review = await BookReview.findById(reviewId);;
     if(book_review == null){
       return res.status(404).json({ message: "Review not found." });
     }
