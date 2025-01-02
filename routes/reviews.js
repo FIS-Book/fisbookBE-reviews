@@ -1,36 +1,130 @@
 var express = require('express');
 var router = express.Router();
+var axios = require('axios');
 var BookReview = require('../models/book_review');
 var ReadingListReview = require('../models/reading_list_review');
+const authenticateAndAuthorize = require('../authentication/authenticateAndAuthorize');
+require('dotenv').config();
 
-/*Reviews examples
-var reviews = [
+router.get('/healthz', (req, res) => {
+  res.sendStatus(200);
+});
 
-  {"bookID" : 1, "userID": 1, "reviewID": 1 , "score":4.5 , "title": "Wonderfull summer book", "comment":"What a great summer book, I've loved it! Such a shame the lady on red dies at the end..." },
-  {"bookID" : 1, "userID": 2, "reviewID": 2 , "score":1 , "title": "What was that?!!!", "comment":"No spoilers but this book is sooo dissapointing. A great WTF ending without any explanation and without a reason. \n Won't recomend, DO NOT READ!!!! " },  
-  {"readingListID" : 1, "userID": 1, "reviewID": 3 , "score":5 , "comment":"This list is so cool, I loved it!!!! Thanks @Julia for creating it "},
-  {"readingListID" : 2, "userID": 1, "reviewID": 4 , "score":4 , "comment": "It's missing my fav book, Madame Bovary, but a pretty cool classic list!"},
-  {"readingListID" : 2, "userID": 2, "reviewID": 5 , "score":0.5 , "comment": "How can you call this a classic list without including TKAMB and 1984?!!! 0.5 is being too generous..."},  
-  ];
-*
+const BASE_URL = process.env.BASE_URL;
+const USER_SERVICE_URL = BASE_URL + process.env.MS_USERS_URL;
+const CATALOGUE_SERVICE_URL = BASE_URL + process.env.MS_CATALOGUE_URL;
+const READING_LIST_SERVICE_URL = BASE_URL + process.env.MS_READING_LIST_URL;
+
+const axiosInstance = axios.create({
+  timeout: 5000 // Timeout de 5 segundos
+});
+// Auxiliar functions 
+async function getUserInfo(userID, token) {
+  try {
+    const response = await axiosInstance.get(`${USER_SERVICE_URL}/${userID}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (err) {
+    console.error(`Error fetching user info for userID ${userID}`, err);
+    return null;
+  }
+}
+
+async function getBookTitle(ISBN,token) {
+  try {
+    const response = await axiosInstance.get(`${CATALOGUE_SERVICE_URL}/isbn/${ISBN}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data.title;
+  } catch (err) {
+    console.error(`Error fetching book info for book with ISBN: ${ISBN}`, err);
+    return null;
+  }
+}
+
+async function getReadingListTitle(genreID,token){
+  try {
+    const response = await axiosInstance.get(`${READING_LIST_SERVICE_URL}/genres?genreId=${genreID}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data.title;
+  } catch (err) {
+    console.error(`Error fetching reading list info for reading list with ID: ${genreID}`, err);
+    return null;
+  }
+}
+
+async function updateBookScore(ISBN,token,score) {
+  try {
+    const response = await axiosInstance.patch(`${CATALOGUE_SERVICE_URL}/${ISBN}/review`, {
+      "score": score
+    }, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data.title;
+  } catch (err) {
+    console.error(`Error fetching book info for book with ISBN: ${ISBN}`, err);
+    return null;
+  }
+}
+
+async function updateReadingListScore(genreID,token,score) {
+  try {
+    const readingList = await axiosInstance.get(`${READING_LIST_SERVICE_URL}/genres?genreId=${genreID}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  } catch (err) {
+    console.error(`Error fetching reading list info for reading list with ID: ${genreID}`, err);
+    return null;
+  }
+  let old_nreviews = readingList.data.nreviews;
+  let old_score = readingList.data.score;
+  let new_nreviews = old_nreviews + 1;
+  let new_score = (old_score * old_nreviews + score) / new_nreviews;
+  try {
+    const response = await axiosInstance.get(`${READING_LIST_SERVICE_URL}/readings/update-genre`, {
+      "genreId": genreID,
+      "score": new_score,
+      "numberReviews": new_nreviews
+    }, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data.title;
+  } catch (err) {
+    console.error(`Error fetching book info for book with ISBN: ${ISBN}`, err);
+    return null;
+  }
+}
 
 /* GET ALL reviews.*/
-{router.get('/', async function(req, res, next) {
+router.get('/', async function(req, res, next) {
   try{
-    var book_reviews = await BookReview.find();
-    var reading_list_reviews = await ReadingListReview.find();
+    let book_reviews = await BookReview.find();
+    let reading_list_reviews = await ReadingListReview.find();
     res.json({book_reviews,reading_list_reviews}); 
   }catch(err){
     debug("DB problem",err);
     res.sendStatus(500);
   }
-})}
+});
 
 /* GET reviews of every book*/
 router.get('/books', async function(req, res, next) {
   try{
-    var books_reviews = await BookReview.find();
-    //console.log(books_reviews);
+    let books_reviews = await BookReview.find();
     if(books_reviews.length == 0){
       return res.status(404).json({ message: "No reviews of books found." });
     }
@@ -44,8 +138,7 @@ router.get('/books', async function(req, res, next) {
 /* GET reviews of every reading list*/
 router.get('/reading_lists', async function(req, res, next) {
   try{
-    var reading_lists_reviews = await ReadingListReview.find();
-    //console.log(reading_lists_reviews);
+    let reading_lists_reviews = await ReadingListReview.find();
     if(reading_lists_reviews.length == 0){
       return res.status(404).json({ message: "No reviews of reading lists found." });
     }
@@ -57,16 +150,20 @@ router.get('/reading_lists', async function(req, res, next) {
 });
 
 /* GET all reviews of a specified book*/
-router.get('/books/bk/:bookID', async function(req, res, next) {
-  var id = req.params.bookID;
-  //console.log("Tipo e valore di id:", typeof id, id);
+router.get('/books/bk/:bookID',  authenticateAndAuthorize(['User', 'Admin']), async function(req, res, next) {
+  let id = req.params.bookID;
+  const token = req.headers.authorization.split(' ')[1];
   try{
-    var book_reviews = await BookReview.find({book_id : id});
-    //console.log(book_reviews);
+    let book_reviews = await BookReview.find({book_id : id});
     if(book_reviews.length == 0){
       return res.status(404).json({ message: "No reviews found for this book." });
     }
-    return res.json(book_reviews); 
+    const reviewsWithUserInfo = await Promise.all(book_reviews.map(async (review) => {
+      const user = await getUserInfo(review.user_id,token);
+      return { ...review._doc, user };
+    }));
+
+    return res.json(reviewsWithUserInfo);
   }catch(err){
     console.error("DB problem",err);
     res.sendStatus(500);
@@ -74,21 +171,28 @@ router.get('/books/bk/:bookID', async function(req, res, next) {
 });
 
 /* GET all reviews of a specified readinglist*/
-router.get('/reading_lists/rl/:readingListID', async function(req, res, next) {
-  var id = req.params.readingListID;
+router.get('/reading_lists/rl/:readingListID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res, next) {
+  let id = req.params.readingListID;
+  const token = req.headers.authorization.split(' ')[1];
   try{
-    var reading_list_reviews = await ReadingListReview.find({reading_list_id : id});
+    let reading_list_reviews = await ReadingListReview.find({reading_list_id : id});
     if(reading_list_reviews.length == 0){
       return res.status(404).json({ message: "No reviews found for this reading list." });
     }
-    return res.json(reading_list_reviews); 
+    const listreviewsWithUserInfo = await Promise.all(reading_list_reviews.map(async (review) => {
+      const user = await getUserInfo(review.user_id, token);
+      return { ...review._doc, user };
+    }));
+
+    return res.json(listreviewsWithUserInfo);
   }catch(err){
     console.error("DB problem",err);
     res.sendStatus(500);
   }
 });
+
 /* GET a review of a readinglist by review ID*/
-router.get('/reading_lists/rev/:reviewID', async function(req, res, next) {
+router.get('/reading_lists/rev/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res, next) {
   const reviewId = req.params.reviewID;
   try{
     var reading_list_review = await ReadingListReview.findById(reviewId);
@@ -103,7 +207,7 @@ router.get('/reading_lists/rev/:reviewID', async function(req, res, next) {
 });
 
 /* GET a review of a book by review ID*/
-router.get('/books/rev/:reviewID', async function(req, res, next) {
+router.get('/books/rev/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res, next) {
   const reviewId = req.params.reviewID;
   try{
     var book_review = await BookReview.findById(reviewId);;
@@ -117,12 +221,60 @@ router.get('/books/rev/:reviewID', async function(req, res, next) {
   }
 });
 
+/* GET all reviews of book made by a specific user*/
+router.get('/users/:userID/bk', authenticateAndAuthorize(['User', 'Admin']), async function(req, res, next) {
+  let id = req.params.userID;
+  const token = req.headers.authorization.split(' ')[1];
+  try{
+    let book_reviews = await BookReview.find({user_id : id});
+    if(book_reviews.length == 0){
+      return res.status(404).json({ message: "No book reviews found for this user." });
+    }
+    const reviewsWithBookTitle = await Promise.all(book_reviews.map(async (review) => {
+      const bookTitle = await getBookTitle(review.book_id, token);
+      return { ...review._doc, bookTitle };
+    }));
+
+    return res.json(reviewsWithBookTitle);
+  }catch(err){
+    console.error("DB problem",err);
+    res.sendStatus(500);
+  }
+});
+
+/* GET all reviews of reading lists made by a specific user*/
+router.get('/users/:userID/rl',  authenticateAndAuthorize(['User', 'Admin']), async function(req, res, next) {
+  let id = req.params.userID;
+  const token = req.headers.authorization.split(' ')[1];
+  try{
+    let reading_reviews = await ReadingListReview.find({user_id : id});
+    if(reading_reviews.length == 0){
+      return res.status(404).json({ message: "No reading list reviews found for this user." });
+    }
+    const reviewsWithReadingTitle = await Promise.all(reading_reviews.map(async (review) => {
+      const readingTitle = await getReadingListTitle(review.reading_list_id, token);
+      return { ...review._doc, readingTitle };
+    }));
+
+    return res.json(reviewsWithReadingTitle); 
+  }catch(err){
+    console.error("DB problem",err);
+    res.sendStatus(500);
+  }
+});
+
 /* POST a review of a book*/
-router.post('/books',async function(req, res,next){
-  var {user_id ,book_id, score, title, comment} = req.body;
+router.post('/books', authenticateAndAuthorize(['User', 'Admin']),async function(req, res,next){
+  let {user_id ,book_id, score, title, comment} = req.body;
   const book_review = new BookReview({user_id,book_id,score,title,comment});
+  const token = req.headers.authorization.split(' ')[1];
   try{
     await book_review.save();
+    try {
+      updateBookScore(book_id,token,score);
+    } catch (error) {
+      return res.status(500).json({ message: 'An error occurred while updating the book score.' });
+    }
     return res.sendStatus(201);
   }catch(err){
     if(err.name==='ValidationError'){
@@ -134,8 +286,8 @@ router.post('/books',async function(req, res,next){
 })
 
 /* POST a review of a reading list */
-router.post('/reading_lists',async function(req, res,next){
-  var {user_id ,reading_list_id, score, comment} = req.body;
+router.post('/reading_lists',  authenticateAndAuthorize(['User', 'Admin']), async function(req, res,next){
+  let {user_id ,reading_list_id, score, comment} = req.body;
   const reading_list_review = new ReadingListReview({user_id,reading_list_id,score,comment});
   try{
     await reading_list_review.save();
@@ -150,7 +302,7 @@ router.post('/reading_lists',async function(req, res,next){
 })
 
 /*PUT a review of a book*/
-router.put('/books/:reviewID', async function(req, res,next){
+router.put('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res,next){
   const reviewID = req.params.reviewID;
   var {score, title, comment} = req.body;
   try{
@@ -175,7 +327,7 @@ router.put('/books/:reviewID', async function(req, res,next){
 }); 
 
 /*PUT a review of a reading list*/
-router.put('/reading_lists/:reviewID', async function(req, res,next){
+router.put('/reading_lists/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res,next){
   const reviewID = req.params.reviewID;
   var {score, comment} = req.body;
   try{
@@ -201,7 +353,7 @@ router.put('/reading_lists/:reviewID', async function(req, res,next){
 
 
 /*DELETE a review of a reading list*/
-router.delete('/reading_lists/:reviewID', async function(req, res,next){
+router.delete('/reading_lists/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res,next){
   const reviewID = req.params.reviewID;
   try {
     const deletedList = await ReadingListReview.findByIdAndDelete(reviewID);
@@ -218,7 +370,7 @@ router.delete('/reading_lists/:reviewID', async function(req, res,next){
 }); 
 
 /*DELETE a review of a book*/
-router.delete('/books/:reviewID', async function(req, res,next){
+router.delete('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res,next){
   const reviewID = req.params.reviewID;
   try {
     const deletedBook= await BookReview.findByIdAndDelete(reviewID);
