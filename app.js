@@ -18,6 +18,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/api/v1/reviews', reviewsRouter);
-app.use('/doc', swaggerUi.serve, swaggerUi.setup(swaggerFile))
+app.use('/api/v1/reviews/doc', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 
 module.exports = app;
