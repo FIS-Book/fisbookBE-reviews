@@ -7,14 +7,15 @@ COPY package-lock.json .
 
 RUN npm install
 
+COPY authentication/ ./authentication
 COPY bin/ ./bin
 COPY models/ ./models
 COPY public/ ./public
 COPY routes/ ./routes
 COPY app.js .
+COPY db.js .
 COPY swagger.js .
 COPY swagger-output.json .
-COPY .env .
 
 EXPOSE 3000
 
