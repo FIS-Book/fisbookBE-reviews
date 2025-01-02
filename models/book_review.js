@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// Definiamo lo schema per la recensione
+// Schema for book reviews
 const bookReviewSchema = new mongoose.Schema({
   book_id: {
     type: String,
@@ -14,7 +14,7 @@ const bookReviewSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 0,
-    max: 5  // Valutazione da 0 a 5
+    max: 5  // Values between 0 and 5
   },
   title: {
     type: String,

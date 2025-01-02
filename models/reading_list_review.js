@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// Schema per la recensione della lista di lettura
+// Schema for reading list reviews
 const readingListReviewSchema = new mongoose.Schema({
     reading_list_id: {
       type: String,
