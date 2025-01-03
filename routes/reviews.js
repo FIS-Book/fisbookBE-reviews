@@ -61,50 +61,101 @@ async function getReadingListTitle(genreID,token){
   }
 }
 
-async function updateBookScore(ISBN,token,score) {
+async function updateBookScore(ISBN,token,score,method) {
   try {
-    const response = await axiosInstance.patch(`${CATALOGUE_SERVICE_URL}/${ISBN}/review`, {
-      "score": score
-    }, {
+    let book = await axiosInstance.get(`${CATALOGUE_SERVICE_URL}/ISBN/${ISBN}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    return response.data.title;
+    let new_nreviews;
+    let new_score;
+    if(method == 'post'){
+      let old_nreviews = book.data.totalReviews;
+      let old_score = book.data.totalRating;
+      new_nreviews = old_nreviews + 1;
+      new_score = (old_score * old_nreviews + score) / new_nreviews;
+    }else if(method == 'put'){
+      let old_score = book.data.totalRating;
+      new_nreviews = book.data.totalReviews;
+      let diff = score - old_score;
+      new_score = (old_score * old_nreviews + diff) / new_nreviews;
+    }else if (method == 'delete'){
+      let old_nreviews = book.data.totalReviews;
+      let old_score = book.data.totalRating;
+      new_nreviews = old_nreviews - 1;
+      new_score = (old_score * old_nreviews - score) / new_nreviews;
+    }else{
+      console.error("Method not supported");
+      return null
+    }
+    
+    try {
+      const response = await axiosInstance.patch(`${CATALOGUE_SERVICE_URL}/${ISBN}/review`, {
+        "totalRating": new_score,
+        "totalReviews": new_nreviews
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      return response.data.title;
+    } catch (err) {
+      console.error(`Error updating book info for book with ISBN: ${ISBN}`, err);
+      return null;
+    }
   } catch (err) {
     console.error(`Error fetching book info for book with ISBN: ${ISBN}`, err);
     return null;
   }
 }
 
-async function updateReadingListScore(genreID,token,score) {
+
+async function updateReadingListScore(genreID,token,score,method) {
   try {
-    const readingList = await axiosInstance.get(`${READING_LIST_SERVICE_URL}/genres?genreId=${genreID}`, {
+    let readingList = await axiosInstance.get(`${READING_LIST_SERVICE_URL}/genres?genreId=${genreID}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
+    let new_nreviews;
+    let new_score;
+    if(method == 'post'){
+      let old_nreviews = book.data.totalReviews;
+      let old_score = book.data.totalRating;
+      new_nreviews = old_nreviews + 1;
+      new_score = (old_score * old_nreviews + score) / new_nreviews;
+    }else if(method == 'put'){
+      let old_score = book.data.totalRating;
+      new_nreviews = book.data.totalReviews;
+      let diff = score - old_score;
+      new_score = (old_score * old_nreviews + diff) / new_nreviews;
+    }else if (method == 'delete'){
+      let old_nreviews = book.data.totalReviews;
+      let old_score = book.data.totalRating;
+      new_nreviews = old_nreviews - 1;
+      new_score = (old_score * old_nreviews - score) / new_nreviews;
+    }else{
+      console.error("Method not supported");
+      return null
+    }
+    try {
+      const response = await axiosInstance.get(`${READING_LIST_SERVICE_URL}/readings/update-genre`, {
+        "genreId": genreID,
+        "score": new_score,
+        "numberReviews": new_nreviews
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      return response.data.title;
+    } catch (err) {
+      console.error(`Error updating reading list score for reading list: ${genreID}`, err);
+      return null;
+    }
   } catch (err) {
     console.error(`Error fetching reading list info for reading list with ID: ${genreID}`, err);
-    return null;
-  }
-  let old_nreviews = readingList.data.nreviews;
-  let old_score = readingList.data.score;
-  let new_nreviews = old_nreviews + 1;
-  let new_score = (old_score * old_nreviews + score) / new_nreviews;
-  try {
-    const response = await axiosInstance.get(`${READING_LIST_SERVICE_URL}/readings/update-genre`, {
-      "genreId": genreID,
-      "score": new_score,
-      "numberReviews": new_nreviews
-    }, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    return response.data.title;
-  } catch (err) {
-    console.error(`Error fetching book info for book with ISBN: ${ISBN}`, err);
     return null;
   }
 }
@@ -268,20 +319,34 @@ router.post('/books', authenticateAndAuthorize(['User', 'Admin']),async function
   let {user_id ,book_id, score, title, comment} = req.body;
   const book_review = new BookReview({user_id,book_id,score,title,comment});
   const token = req.headers.authorization.split(' ')[1];
-  try{
-    await book_review.save();
+  // Session to ensure consistency between the review and the book score
+  const session = await BookReview.startSession();
+  session.startTransaction();
+
+  try {
+    await book_review.save({ session }); //Saves the review in the session
     try {
-      updateBookScore(book_id,token,score);
+      await updateBookScore(book_id, token, score, 'post'); // Update the book score
     } catch (error) {
-      return res.status(500).json({ message: 'An error occurred while updating the book score.' });
+      //The book score was not updated, we abort the transaction (we don't save the review)
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(500).json({ message: 'An error occurred while updating the book score. Please try again later' });
     }
+
+    //Everything went well, we commit the transaction
+    await session.commitTransaction();
+    session.endSession();
     return res.sendStatus(201);
-  }catch(err){
-    if(err.name==='ValidationError'){
+
+  } catch (err) {
+    await session.abortTransaction(); // Abort in case of failure
+    session.endSession();
+    if (err.name === 'ValidationError') {
       return res.status(400).send(err.message);
     }
-    console.error("DB problem",err);
-    res.sendStatus(500);
+    console.error("DB problem", err);
+    return res.sendStatus(500);
   }
 })
 
@@ -289,15 +354,33 @@ router.post('/books', authenticateAndAuthorize(['User', 'Admin']),async function
 router.post('/reading_lists',  authenticateAndAuthorize(['User', 'Admin']), async function(req, res,next){
   let {user_id ,reading_list_id, score, comment} = req.body;
   const reading_list_review = new ReadingListReview({user_id,reading_list_id,score,comment});
-  try{
-    await reading_list_review.save();
+  // Start a session for the transaction
+  const session = await ReadingListReview.startSession();
+  session.startTransaction();
+  try {
+    // Save the reading list review within the transaction
+    await reading_list_review.save({ session });
+    try {
+      await updateReadingListScore(reading_list_id, token, score,'post'); // Update the reading list score
+    } catch (error) {
+      //The reading list score was not updated, we abort the transaction (we don't save the review)
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(500).json({ message: 'An error occurred while updating the reading list score. Please try again later' });
+    }
+
+    //Everything went well, we commit the transaction
+    await session.commitTransaction();
+    session.endSession();
     return res.sendStatus(201);
-  }catch(err){
-    if(err.name==='ValidationError'){
+  } catch (err) {
+    await session.abortTransaction(); // Abort in case of failure
+    session.endSession();
+    if (err.name === 'ValidationError') {
       return res.status(400).send(err.message);
     }
-    console.error("DB problem",err);
-    res.sendStatus(500);
+    console.error("DB problem", err);
+    return res.sendStatus(500);
   }
 })
 
@@ -305,24 +388,47 @@ router.post('/reading_lists',  authenticateAndAuthorize(['User', 'Admin']), asyn
 router.put('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res,next){
   const reviewID = req.params.reviewID;
   var {score, title, comment} = req.body;
+
+  // Start a session for the transaction
+  const session = await BookReview.startSession();
+  session.startTransaction();
+
   try{
     const updatedReview = await BookReview.findByIdAndUpdate(
       reviewID,
       { score, title, comment, lastUpdate: Date.now() },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true, session }
     );
+
     if (!updatedReview) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({ message: "Review not found." });
-    }else{
-      return res.status(201).json(updatedReview);
     }
+
+    try {
+      // Now we update the book score
+      await updateBookScore(updatedReview.book_id, token, score, 'put');
+    } catch (error) {// Abort in case of failure updating the book score
+      await session.abortTransaction(); 
+      session.endSession();
+      return res.status(500).json({ message: "An error occurred while updating the book score." });
+    }
+
+    // If everything went well, we commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+    return res.status(200).json(updatedReview);
     
-  }catch(err){
-    if(err.name==='ValidationError'){
+  } catch (err) {
+    // In case something fails, we abort the transaction
+    await session.abortTransaction();
+    session.endSession();
+    if (err.name === 'ValidationError') {
       return res.status(400).send(err.message);
     }
-    console.error("DB problem",err);
-    res.sendStatus(500);
+    console.error("DB problem", err);
+    return res.sendStatus(500);
   }
 }); 
 
@@ -330,24 +436,45 @@ router.put('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), asyn
 router.put('/reading_lists/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res,next){
   const reviewID = req.params.reviewID;
   var {score, comment} = req.body;
+  // Start a session for the transaction
+  const session = await ReadingListReview.startSession();
+  session.startTransaction();
+
   try{
     const updatedReview = await ReadingListReview.findByIdAndUpdate(
       reviewID,
       { score, comment, lastUpdate: Date.now() },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true , session}
     );
     if (!updatedReview) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({ message: "Review not found." });
-    }else{
-      return res.status(201).json(updatedReview);
     }
 
+    try {
+      // Now we update the reading list score
+      await updateReadingListScore(updatedReview.reading_list_id, token, score, 'put');
+    } catch (error) {// Abort in case of failure updating the reading list score
+      await session.abortTransaction(); 
+      session.endSession();
+      return res.status(500).json({ message: "An error occurred while updating the reading list score." });
+    }
+
+    // If everything went well, we commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+    return res.status(200).json(updatedReview);
+
   }catch(err){
-    if(err.name==='ValidationError'){
+    // In case something fails, we abort the transaction
+    await session.abortTransaction();
+    session.endSession();
+    if(err.name === 'ValidationError') {
       return res.status(400).send(err.message);
     }
-    console.error("DB problem",err);
-    res.sendStatus(500);
+    console.error("DB problem", err);
+    return res.sendStatus(500);
   }
 }); 
 
@@ -355,16 +482,36 @@ router.put('/reading_lists/:reviewID', authenticateAndAuthorize(['User', 'Admin'
 /*DELETE a review of a reading list*/
 router.delete('/reading_lists/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res,next){
   const reviewID = req.params.reviewID;
+  const token = req.headers.authorization.split(' ')[1];
+
+  const session = await ReadingListReview.startSession();
+  session.startTransaction();
+
   try {
     const deletedList = await ReadingListReview.findByIdAndDelete(reviewID);
 
     if (!deletedList) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({ message: 'Reading list review not found.' });
     }
 
+    try {
+      await updateReadingListScore(deletedList.reading_list_id, token, deletedList.score, 'delete');
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(500).json({ message: 'An error occurred while updating the reading list score.' });
+    }
+
+    await session.commitTransaction();
+    session.endSession();
     return res.status(200).json({ message: 'Reading list review deleted successfully.' });
+
   } catch (error) {
-    console.error("Error deleting reading list:", error);
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Error deleting reading list review:", error);
     return res.status(500).json({ message: 'An error occurred while deleting the reading list.' });
   }
 }); 
@@ -372,15 +519,34 @@ router.delete('/reading_lists/:reviewID', authenticateAndAuthorize(['User', 'Adm
 /*DELETE a review of a book*/
 router.delete('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res,next){
   const reviewID = req.params.reviewID;
+  const token = req.headers.authorization.split(' ')[1];
+
+  const session = await BookReview.startSession();
+  session.startTransaction();
+
   try {
     const deletedBook= await BookReview.findByIdAndDelete(reviewID);
 
     if (!deletedBook) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({ message: 'Book Review not found.' });
     }
 
+    try {
+      await updateBookScore(deletedBook.book_id, token, deletedBook.score, 'delete');
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(500).json({ message: 'An error occurred while updating the book score.' });
+    }
+
+    await session.commitTransaction();
+    session.endSession();
     return res.status(200).json({ message: 'Book Review deleted successfully.' });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error("Error deleting Book:", error);
     return res.status(500).json({ message: 'An error occurred while deleting the Book Review.' });
   }
