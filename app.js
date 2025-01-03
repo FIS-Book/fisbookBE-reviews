@@ -25,6 +25,6 @@ app.use(cors({
 
 app.use('/', indexRouter);
 app.use('/api/v1/reviews', reviewsRouter);
-app.use('/api/v1/reviews/doc', swaggerUi.serve, swaggerUi.setup(swaggerFile))
+app.use('/api/v1/reviews/api-doc', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 
 module.exports = app;
