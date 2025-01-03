@@ -4,6 +4,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const swaggerUi = require('swagger-ui-express')
 const swaggerFile = require('./swagger-output.json')
+const cors = require('cors');
 
 var indexRouter = require('./routes/index');
 var reviewsRouter = require('./routes/reviews');
@@ -15,6 +16,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(cors({
+  origin: [`${process.env.BASE_URL}`,"http://localhost:3001"],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 app.use('/', indexRouter);
 app.use('/api/v1/reviews', reviewsRouter);
