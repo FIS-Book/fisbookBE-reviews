@@ -8,10 +8,34 @@
   "paths": {
     "/": {
       "get": {
-        "description": "INDEX.js endpoint",
+        "description": "",
         "responses": {
           "default": {
             "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/reviews/healthz": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/reviews/": {
+      "get": {
+        "summary": "Get all the reviews",
+        "description": "Get all the reviews of books and reading lists",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -33,13 +57,29 @@
         }
       },
       "post": {
-        "summary": "Create a new review.",
+        "summary": "Post a review of a book",
+        "description": "Post a review of a book",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "201": {
             "description": "Created"
           },
           "400": {
             "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "500": {
             "description": "Internal Server Error"
@@ -52,19 +92,19 @@
                 "type": "object",
                 "properties": {
                   "user_id": {
-                    "example": "1"
+                    "example": "6773ae4ea03551c57bd45bec"
                   },
                   "book_id": {
-                    "example": "1"
+                    "example": "9788408227120"
                   },
                   "score": {
-                    "example": "5"
+                    "example": "3"
                   },
                   "title": {
-                    "example": "Nice book"
+                    "example": "Not bad"
                   },
                   "comment": {
-                    "example": "I really enjoyed this book"
+                    "example": "A good book"
                   }
                 }
               }
@@ -74,28 +114,29 @@
       }
     },
     "/api/v1/reviews/reading_lists": {
-      "get": {
-        "description": "Get all the reviews of every reading list",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      },
       "post": {
-        "description": "Create a review for a reading list",
+        "summary": "Post a review of a reading list",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "201": {
             "description": "Created"
           },
           "400": {
             "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "500": {
             "description": "Internal Server Error"
@@ -108,16 +149,16 @@
                 "type": "object",
                 "properties": {
                   "user_id": {
-                    "example": "1"
+                    "example": "any"
                   },
                   "reading_list_id": {
-                    "example": "1"
+                    "example": "any"
                   },
                   "score": {
-                    "example": "3"
+                    "example": "any"
                   },
                   "comment": {
-                    "example": "Not bad!"
+                    "example": "any"
                   }
                 }
               }
@@ -128,7 +169,7 @@
     },
     "/api/v1/reviews/books/bk/{bookID}": {
       "get": {
-        "description": "",
+        "summary": "Get all reviews of a specified book",
         "parameters": [
           {
             "name": "bookID",
@@ -137,11 +178,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found"
@@ -154,7 +208,7 @@
     },
     "/api/v1/reviews/reading_lists/rl/{readingListID}": {
       "get": {
-        "description": "",
+        "summary": "Get all reviews of a specified reading list",
         "parameters": [
           {
             "name": "readingListID",
@@ -163,11 +217,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found"
@@ -180,7 +247,7 @@
     },
     "/api/v1/reviews/reading_lists/rev/{reviewID}": {
       "get": {
-        "description": "",
+        "summary": "Get a review of reading list by its ID",
         "parameters": [
           {
             "name": "reviewID",
@@ -189,11 +256,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found"
@@ -206,7 +286,7 @@
     },
     "/api/v1/reviews/books/rev/{reviewID}": {
       "get": {
-        "description": "",
+        "summary": "Get a review of book by its ID",
         "parameters": [
           {
             "name": "reviewID",
@@ -215,11 +295,102 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/reviews/users/{userID}/bk": {
+      "get": {
+        "summary": "Get all the reviews of books made by one user",
+        "parameters": [
+          {
+            "name": "userID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/reviews/users/{userID}/rl": {
+      "get": {
+        "summary": "Get all the reviews of reading lists made by one user",
+        "parameters": [
+          {
+            "name": "userID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found"
@@ -232,7 +403,7 @@
     },
     "/api/v1/reviews/books/{reviewID}": {
       "put": {
-        "description": "",
+        "summary": "Update a review of a book",
         "parameters": [
           {
             "name": "reviewID",
@@ -241,14 +412,27 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
-          "201": {
-            "description": "Created"
+          "200": {
+            "description": "OK"
           },
           "400": {
             "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found"
@@ -279,6 +463,7 @@
         }
       },
       "delete": {
+        "summary": "Delete a review of a book",
         "description": "",
         "parameters": [
           {
@@ -288,11 +473,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found"
@@ -305,6 +503,7 @@
     },
     "/api/v1/reviews/reading_lists/{reviewID}": {
       "put": {
+        "summary": "Update a review of a reading list",
         "description": "",
         "parameters": [
           {
@@ -314,14 +513,27 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
-          "201": {
-            "description": "Created"
+          "200": {
+            "description": "OK"
           },
           "400": {
             "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found"
@@ -349,6 +561,7 @@
         }
       },
       "delete": {
+        "summary": "Delete a review of a reading list",
         "description": "",
         "parameters": [
           {
@@ -358,11 +571,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found"
