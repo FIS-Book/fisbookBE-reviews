@@ -20,7 +20,14 @@ const doc = {
     },
     // { ... }
   ],
-  components: {}            // by default: empty object
+  components: {
+    securitySchemes:{
+        bearerAuth: {
+            type: 'http',
+            scheme: 'bearer'
+        }
+    }
+  },
 };
 
 const outputFile = './swagger-output.json';
