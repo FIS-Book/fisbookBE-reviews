@@ -23,7 +23,7 @@ const axiosInstance = axios.create({
 async function getUserInfo(userID, token) {
   // #swagger.ignore = true
   try {
-    const response = await axiosInstance.get(`${USER_SERVICE_URL}/${userID}`, {
+    const response = await axiosInstance.get(`${USER_SERVICE_URL}/users/${userID}`, {
       // #swagger.ignore = true
       headers: {
         'Authorization': `Bearer ${token}`
