@@ -6,18 +6,11 @@
     "description": "Welcome to the API documentation for the FISBook Reviews API. This API allows you to interact with the reviews of books and reading lists in the FISBook application."
   },
   "paths": {
-    "/": {
-      "get": {
-        "description": "",
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
     "/api/v1/reviews/healthz": {
       "get": {
+        "tags": [
+          "Healthz"
+        ],
         "description": "",
         "responses": {
           "200": {
@@ -28,25 +21,66 @@
     },
     "/api/v1/reviews/": {
       "get": {
+        "tags": [
+          "Admin"
+        ],
         "summary": "Get all the reviews",
         "description": "Get all the reviews of books and reading lists",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/v1/reviews/books": {
       "get": {
+        "tags": [
+          "Admin"
+        ],
         "summary": "Get all the reviews of every book",
-        "description": "Get all the reviews of books in the database",
+        "description": "Get all the reviews of books",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found"
@@ -54,11 +88,19 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "post": {
-        "summary": "Post a review of a book",
-        "description": "Post a review of a book",
+        "tags": [
+          "User"
+        ],
+        "summary": "Post a new review of a book",
+        "description": "Post a new review of a book indicating your userID, the bookID, score, title and comment",
         "parameters": [
           {
             "name": "authorization",
@@ -85,6 +127,11 @@
             "description": "Internal Server Error"
           }
         },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -92,19 +139,19 @@
                 "type": "object",
                 "properties": {
                   "user_id": {
-                    "example": "6773ae4ea03551c57bd45bec"
+                    "example": "any"
                   },
                   "book_id": {
-                    "example": "9788408227120"
+                    "example": "any"
                   },
                   "score": {
-                    "example": "3"
+                    "example": "any"
                   },
                   "title": {
-                    "example": "Not bad"
+                    "example": "any"
                   },
                   "comment": {
-                    "example": "A good book"
+                    "example": "any"
                   }
                 }
               }
@@ -114,8 +161,50 @@
       }
     },
     "/api/v1/reviews/reading_lists": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Get all the reviews of every reading list",
+        "description": "Get all the reviews of every reading list",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
       "post": {
-        "summary": "Post a review of a reading list",
+        "tags": [
+          "User"
+        ],
+        "summary": "Post a new review of a reading list",
+        "description": "Post a new review of a reading list indicating your user_id, the reading_list_id, score and comment",
         "parameters": [
           {
             "name": "authorization",
@@ -142,6 +231,11 @@
             "description": "Internal Server Error"
           }
         },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -169,7 +263,11 @@
     },
     "/api/v1/reviews/books/bk/{bookID}": {
       "get": {
-        "summary": "Get all reviews of a specified book",
+        "tags": [
+          "User"
+        ],
+        "summary": "Get all the reviews of a specified book",
+        "description": "Get all the reviews of a specified book given its ID",
         "parameters": [
           {
             "name": "bookID",
@@ -203,12 +301,21 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/v1/reviews/reading_lists/rl/{readingListID}": {
       "get": {
-        "summary": "Get all reviews of a specified reading list",
+        "tags": [
+          "User"
+        ],
+        "summary": "Get all the reviews of a specified reading list",
+        "description": "Get all the reviews of a specified reading list given its ID",
         "parameters": [
           {
             "name": "readingListID",
@@ -242,12 +349,21 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/v1/reviews/reading_lists/rev/{reviewID}": {
       "get": {
-        "summary": "Get a review of reading list by its ID",
+        "tags": [
+          "User"
+        ],
+        "summary": "Get a review of reading list",
+        "description": "Get a review of reading list given its ID",
         "parameters": [
           {
             "name": "reviewID",
@@ -281,12 +397,21 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/v1/reviews/books/rev/{reviewID}": {
       "get": {
-        "summary": "Get a review of book by its ID",
+        "tags": [
+          "User"
+        ],
+        "summary": "Get a review of books",
+        "description": "Get a review of books given its ID",
         "parameters": [
           {
             "name": "reviewID",
@@ -320,12 +445,21 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/v1/reviews/users/{userID}/bk": {
       "get": {
-        "summary": "Get all the reviews of books made by one user",
+        "tags": [
+          "User"
+        ],
+        "summary": "Get all the reviews of books made by a specific user",
+        "description": "Get all the reviews of books made by a specific user given their ID",
         "parameters": [
           {
             "name": "userID",
@@ -359,12 +493,21 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/v1/reviews/users/{userID}/rl": {
       "get": {
-        "summary": "Get all the reviews of reading lists made by one user",
+        "tags": [
+          "User"
+        ],
+        "summary": "Get all the reviews of reading lists made by a specific user",
+        "description": "Get all the reviews of reading lists made by a specific user given their ID",
         "parameters": [
           {
             "name": "userID",
@@ -398,12 +541,21 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/v1/reviews/books/{reviewID}": {
       "put": {
-        "summary": "Update a review of a book",
+        "tags": [
+          "User"
+        ],
+        "summary": "Edit a review of a book",
+        "description": "Edit a review(by its ID) of a book indicating the new score, title and comment",
         "parameters": [
           {
             "name": "reviewID",
@@ -441,6 +593,11 @@
             "description": "Internal Server Error"
           }
         },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -463,8 +620,11 @@
         }
       },
       "delete": {
+        "tags": [
+          "User"
+        ],
         "summary": "Delete a review of a book",
-        "description": "",
+        "description": "Delete a review(by its ID) of a book",
         "parameters": [
           {
             "name": "reviewID",
@@ -498,13 +658,21 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/v1/reviews/reading_lists/{reviewID}": {
       "put": {
-        "summary": "Update a review of a reading list",
-        "description": "",
+        "tags": [
+          "User"
+        ],
+        "summary": "Edit a review of a reading list",
+        "description": "Edit a review(by its ID) of a reading list indicating the new score and comment",
         "parameters": [
           {
             "name": "reviewID",
@@ -542,6 +710,11 @@
             "description": "Internal Server Error"
           }
         },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -561,8 +734,11 @@
         }
       },
       "delete": {
+        "tags": [
+          "User"
+        ],
         "summary": "Delete a review of a reading list",
-        "description": "",
+        "description": "Delete a review(by its ID) of a reading list",
         "parameters": [
           {
             "name": "reviewID",
@@ -596,7 +772,20 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
       }
     }
   }
