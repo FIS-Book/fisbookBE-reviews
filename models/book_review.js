@@ -34,6 +34,9 @@ const bookReviewSchema = new mongoose.Schema({
   }
 },{collection: 'book_reviews'});
 
+// Create a unique index to ensure one review per user and book
+bookReviewSchema.index({ book_id: 1, user_id: 1 }, { unique: true });
+
 const BookReview = mongoose.model('BookReview', bookReviewSchema);
 
 module.exports = BookReview;

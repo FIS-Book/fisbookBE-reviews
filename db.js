@@ -7,7 +7,7 @@ require('dotenv').config();
 //Function to connect to the database
 async function connectToDatabase() {
     try {
-        const DB_URL = process.env.NODE_ENV === 'test' ? process.env.TEST_DB_URL : process.env.DB_URL; // Use the TEST_DB_URL environment variable if we are running tests
+        const DB_URL = process.env.NODE_ENV === 'test' ? process.env.TEST_DB_URL : process.env.REVIEW_DB_URL; // Use the TEST_DB_URL environment variable if we are running tests
         //console.log('DB_URL:', DB_URL)
         await mongoose.connect(DB_URL);
         console.log('Connected to MongoDB successfully');

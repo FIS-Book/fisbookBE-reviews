@@ -29,6 +29,9 @@ const readingListReviewSchema = new mongoose.Schema({
       default: Date.now
     }
   },{ collection: 'reading_list_reviews'});
+
+  // Create a unique index to ensure one review per user and reading list
+  readingListReviewSchema.index({ reading_list_id: 1, user_id: 1 }, { unique: true });
   
   const ReadingListReview = mongoose.model('ReadingListReview', readingListReviewSchema);
   module.exports = ReadingListReview;
