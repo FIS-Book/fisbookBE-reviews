@@ -6,7 +6,6 @@ const swaggerUi = require('swagger-ui-express')
 const swaggerFile = require('./swagger-output.json')
 const cors = require('cors');
 
-var indexRouter = require('./routes/index');
 var reviewsRouter = require('./routes/reviews');
 
 var app = express();
@@ -23,7 +22,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-app.use('/', indexRouter);
 app.use('/api/v1/reviews', reviewsRouter);
 app.use('/api/v1/reviews/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 
