@@ -243,6 +243,7 @@ router.get('/books/bk/:bookID',  authenticateAndAuthorize(['User', 'Admin']), as
         "bearerAuth": []
       }]
   */
+  db.book_reviews.getIndexes()
   let id = req.params.bookID;
   const token = req.headers.authorization.split(' ')[1];
   try{
@@ -431,6 +432,9 @@ router.post('/books', authenticateAndAuthorize(['User', 'Admin']),async function
   } catch (err) {
     await session.abortTransaction(); // Abort in case of failure
     session.endSession();
+    if (err.code === 11000) {
+      return res.status(400).json({ message: 'You have already posted a review for this book.' });
+    }
     if (err.name === 'ValidationError') {
       return res.status(400).send(err.message);
     }
@@ -473,6 +477,9 @@ router.post('/reading_lists',  authenticateAndAuthorize(['User', 'Admin']), asyn
   } catch (err) {
     await session.abortTransaction(); // Abort in case of failure
     session.endSession();
+    if (err.code === 11000) {
+      return res.status(400).json({ message: 'You have already posted a review for this reading list.' });
+    }
     if (err.name === 'ValidationError') {
       return res.status(400).send(err.message);
     }
