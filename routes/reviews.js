@@ -243,7 +243,6 @@ router.get('/books/bk/:bookID',  authenticateAndAuthorize(['User', 'Admin']), as
         "bearerAuth": []
       }]
   */
-  db.book_reviews.getIndexes()
   let id = req.params.bookID;
   const token = req.headers.authorization.split(' ')[1];
   try{
