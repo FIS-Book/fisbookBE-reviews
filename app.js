@@ -7,7 +7,7 @@ const swaggerFile = require('./swagger-output.json')
 const cors = require('cors');
 
 var indexRouter = require('./routes/index');
-var reviewsRouter = require('./routes/reviews');
+var reviewsRouter = require('./routes/reviews').router;
 
 var app = express();
 
