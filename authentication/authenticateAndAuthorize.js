@@ -17,6 +17,7 @@ const authenticateAndAuthorize = (roles) => {
     jwt.verify(token, secretKey, (err, decoded) => {
       if (err) {
         console.error('JWT Error:', err.message);
+        console.log('jwt error:', roles);
         return res.status(403).json({ message: 'Invalid or expired token.' });
       }
 
