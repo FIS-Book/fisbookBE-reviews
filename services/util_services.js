@@ -77,9 +77,8 @@ async function updateBookScore(ISBN,token,score,method) {
       new_nreviews = old_nreviews + 1;
       new_score = (old_score * old_nreviews + score) / new_nreviews;
     }else if(method == 'put'){
-      new_nreviews = book.data.totalReviews;
-      let diff = score - old_score;
-      new_score = (old_score * old_nreviews + diff) / new_nreviews;
+      new_nreviews = old_nreviews;
+      new_score = (old_score * old_nreviews - old_score + score) / new_nreviews;
     }else if (method == 'delete'){
       new_nreviews = old_nreviews - 1;
       if (new_nreviews === 0) {
@@ -131,8 +130,8 @@ async function updateReadingListScore(genreID,token,score,method) {
       new_nreviews = old_nreviews + 1;
       new_score = (old_score * old_nreviews + score) / new_nreviews;
     }else if(method == 'put'){
-      let diff = score - old_score;
-      new_score = (old_score * old_nreviews + diff) / new_nreviews;
+      new_nreviews = old_nreviews;
+      new_score = (old_score * old_nreviews - old_score + score) / new_nreviews;
     }else if (method == 'delete'){
       new_nreviews = old_nreviews - 1;
       if (new_nreviews === 0) {
