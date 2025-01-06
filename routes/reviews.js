@@ -426,7 +426,7 @@ router.post('/books', authenticateAndAuthorize(['User', 'Admin']),async function
     //Everything went well, we commit the transaction
     await session.commitTransaction();
     session.endSession();
-    return res.sendStatus(201);
+    return res.status(201).json({ message: 'Review created successfully', book_review });
 
   } catch (err) {
     await session.abortTransaction(); // Abort in case of failure
@@ -472,7 +472,7 @@ router.post('/reading_lists',  authenticateAndAuthorize(['User', 'Admin']), asyn
     //Everything went well, we commit the transaction
     await session.commitTransaction();
     session.endSession();
-    return res.sendStatus(201);
+    return res.status(201).json({ message: 'Review created successfully', book_review });
   } catch (err) {
     await session.abortTransaction(); // Abort in case of failure
     session.endSession();
