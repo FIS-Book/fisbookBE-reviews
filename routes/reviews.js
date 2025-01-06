@@ -11,6 +11,7 @@ require('dotenv').config();
 
 
 router.get('/healthz', (req, res) => {
+  // #swagger.tags = ['Healthz']
   res.sendStatus(200);
 });
 
@@ -62,6 +63,14 @@ router.get('/reading_lists', async function(req, res, next) {
 
 /* GET all reviews of a specified book*/
 router.get('/books/bk/:bookID',  authenticateAndAuthorize(['User', 'Admin']), async function(req, res, next) {
+  /*
+    #swagger.tags = ['User']
+    #swagger.summary = "Get all the reviews of a specified book"
+    #swagger.description = "Get all the reviews of a specified book given its ID"
+    #swagger.security = [{
+        "bearerAuth": []
+      }]
+  */
   let id = req.params.bookID;
   const token = req.headers.authorization.split(' ')[1];
   try{
@@ -88,6 +97,14 @@ router.get('/books/bk/:bookID',  authenticateAndAuthorize(['User', 'Admin']), as
 
 /* GET all reviews of a specified readinglist*/
 router.get('/reading_lists/rl/:readingListID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res, next) {
+  /*
+    #swagger.tags = ['User']
+    #swagger.summary = "Get all the reviews of a specified reading list"
+    #swagger.description = "Get all the reviews of a specified reading list given its ID"
+    #swagger.security = [{
+        "bearerAuth": []
+      }]
+  */
   let id = req.params.readingListID;
   const token = req.headers.authorization.split(' ')[1];
   try{
@@ -109,6 +126,14 @@ router.get('/reading_lists/rl/:readingListID', authenticateAndAuthorize(['User',
 
 /* GET a review of a readinglist by review ID*/
 router.get('/reading_lists/rev/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res, next) {
+  /*
+    #swagger.tags = ['User']
+    #swagger.summary = "Get a review of reading list"
+    #swagger.description = "Get a review of reading list given its ID"
+    #swagger.security = [{
+        "bearerAuth": []
+      }]
+  */
   const reviewId = req.params.reviewID;
   try{
     var reading_list_review = await ReadingListReview.findById(reviewId);
@@ -124,6 +149,14 @@ router.get('/reading_lists/rev/:reviewID', authenticateAndAuthorize(['User', 'Ad
 
 /* GET a review of a book by review ID*/
 router.get('/books/rev/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res, next) {
+  /*
+    #swagger.tags = ['User']
+    #swagger.summary = "Get a review of books"
+    #swagger.description = "Get a review of books given its ID"
+    #swagger.security = [{
+        "bearerAuth": []
+      }]
+  */
   const reviewId = req.params.reviewID;
   try{
     var book_review = await BookReview.findById(reviewId);;
@@ -139,6 +172,14 @@ router.get('/books/rev/:reviewID', authenticateAndAuthorize(['User', 'Admin']), 
 
 /* GET all reviews of book made by a specific user*/
 router.get('/users/:userID/bk', authenticateAndAuthorize(['User', 'Admin']), async function(req, res, next) {
+  /*
+    #swagger.tags = ['User']
+    #swagger.summary = "Get all the reviews of books made by a specific user"
+    #swagger.description = "Get all the reviews of books made by a specific user given their ID"
+    #swagger.security = [{
+        "bearerAuth": []
+      }]
+  */
   let id = req.params.userID;
   const token = req.headers.authorization.split(' ')[1];
   try{
@@ -160,6 +201,14 @@ router.get('/users/:userID/bk', authenticateAndAuthorize(['User', 'Admin']), asy
 
 /* GET all reviews of reading lists made by a specific user*/
 router.get('/users/:userID/rl',  authenticateAndAuthorize(['User', 'Admin']), async function(req, res, next) {
+   /*
+    #swagger.tags = ['User']
+    #swagger.summary = "Get all the reviews of reading lists made by a specific user"
+    #swagger.description = "Get all the reviews of reading lists made by a specific user given their ID"
+    #swagger.security = [{
+        "bearerAuth": []
+      }]
+  */
   let id = req.params.userID;
   const token = req.headers.authorization.split(' ')[1];
   try{
@@ -181,6 +230,14 @@ router.get('/users/:userID/rl',  authenticateAndAuthorize(['User', 'Admin']), as
 
 /* POST a review of a book*/
 router.post('/books', authenticateAndAuthorize(['User', 'Admin']),async function(req, res,next){
+   /*
+    #swagger.tags = ['User']
+    #swagger.summary = "Post a new review of a book"
+    #swagger.description = "Post a new review of a book indicating your userID, the bookID, score, title and comment"
+    #swagger.security = [{
+        "bearerAuth": []
+      }]
+  */
   let {user_id ,book_id, score, title, comment} = req.body;
   const book_review = new BookReview({user_id,book_id,score,title,comment});
   const token = req.headers.authorization.split(' ')[1];
@@ -202,11 +259,14 @@ router.post('/books', authenticateAndAuthorize(['User', 'Admin']),async function
     //Everything went well, we commit the transaction
     await session.commitTransaction();
     session.endSession();
-    return res.sendStatus(201);
+    return res.status(201).json({ message: 'Review created successfully', book_review });
 
   } catch (err) {
     await session.abortTransaction(); // Abort in case of failure
     session.endSession();
+    if (err.code === 11000) {
+      return res.status(400).json({ message: 'You have already posted a review for this book.' });
+    }
     if (err.name === 'ValidationError') {
       return res.status(400).send(err.message);
     }
@@ -217,6 +277,14 @@ router.post('/books', authenticateAndAuthorize(['User', 'Admin']),async function
 
 /* POST a review of a reading list */
 router.post('/reading_lists',  authenticateAndAuthorize(['User', 'Admin']), async function(req, res,next){
+  /*
+    #swagger.tags = ['User']
+    #swagger.summary = "Post a new review of a reading list"
+    #swagger.description = "Post a new review of a reading list indicating your user_id, the reading_list_id, score and comment"
+    #swagger.security = [{
+        "bearerAuth": []
+      }]
+  */
   let {user_id ,reading_list_id, score, comment} = req.body;
   const reading_list_review = new ReadingListReview({user_id,reading_list_id,score,comment});
   const token = req.headers.authorization.split(' ')[1];
@@ -243,11 +311,14 @@ router.post('/reading_lists',  authenticateAndAuthorize(['User', 'Admin']), asyn
     //Everything went well, we commit the transaction
     await session.commitTransaction();
     session.endSession();
-    return res.sendStatus(201);
+    return res.status(201).json({ message: 'Review created successfully', book_review });
   } catch (err) {
     console.log('here4 :');
     await session.abortTransaction(); // Abort in case of failure
     session.endSession();
+    if (err.code === 11000) {
+      return res.status(400).json({ message: 'You have already posted a review for this reading list.' });
+    }
     if (err.name === 'ValidationError') {
       return res.status(400).send(err.message);
     }
@@ -259,6 +330,14 @@ router.post('/reading_lists',  authenticateAndAuthorize(['User', 'Admin']), asyn
 
 /*PUT a review of a book*/
 router.put('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res,next){
+  /*
+    #swagger.tags = ['User']
+    #swagger.summary = "Edit a review of a book"
+    #swagger.description = "Edit a review(by its ID) of a book indicating the new score, title and comment"
+    #swagger.security = [{
+        "bearerAuth": []
+      }]
+  */
   const reviewID = req.params.reviewID;
   var {score, title, comment} = req.body;
   const token = req.headers.authorization.split(' ')[1];
@@ -307,6 +386,14 @@ router.put('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), asyn
 
 /*PUT a review of a reading list*/
 router.put('/reading_lists/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res,next){
+  /*
+    #swagger.tags = ['User']
+    #swagger.summary = "Edit a review of a reading list"
+    #swagger.description = "Edit a review(by its ID) of a reading list indicating the new score and comment"
+    #swagger.security = [{
+        "bearerAuth": []
+      }]
+  */
   const reviewID = req.params.reviewID;
   var {score, comment} = req.body;
   const token = req.headers.authorization.split(' ')[1];
@@ -355,6 +442,14 @@ router.put('/reading_lists/:reviewID', authenticateAndAuthorize(['User', 'Admin'
 
 /*DELETE a review of a reading list*/
 router.delete('/reading_lists/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res,next){
+  /*
+    #swagger.tags = ['User']
+    #swagger.summary = "Delete a review of a reading list"
+    #swagger.description = "Delete a review(by its ID) of a reading list"
+    #swagger.security = [{
+        "bearerAuth": []
+      }]
+  */
   const reviewID = req.params.reviewID;
   const token = req.headers.authorization.split(' ')[1];
 
@@ -392,6 +487,14 @@ router.delete('/reading_lists/:reviewID', authenticateAndAuthorize(['User', 'Adm
 
 /*DELETE a review of a book*/
 router.delete('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res,next){
+  /*
+    #swagger.tags = ['User']
+    #swagger.summary = "Delete a review of a book"
+    #swagger.description = "Delete a review(by its ID) of a book"
+    #swagger.security = [{
+        "bearerAuth": []
+      }]
+  */
   const reviewID = req.params.reviewID;
   const token = req.headers.authorization.split(' ')[1];
 
