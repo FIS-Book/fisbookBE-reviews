@@ -12,6 +12,7 @@ COPY bin/ ./bin
 COPY models/ ./models
 COPY public/ ./public
 COPY routes/ ./routes
+COPY services/ ./services
 COPY app.js .
 COPY db.js .
 COPY swagger.js .
