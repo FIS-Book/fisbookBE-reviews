@@ -1,12 +1,10 @@
 var express = require('express');
 var router = express.Router();
-var axios = require('axios');
 var BookReview = require('../models/book_review');
 var ReadingListReview = require('../models/reading_list_review');
 var {getUserInfo, getBookTitle, getReadingListTitle, updateBookScore, updateReadingListScore} = require('../services/util_services');
 
 const authenticateAndAuthorize = require('../authentication/authenticateAndAuthorize');
-console.log(authenticateAndAuthorize);
 require('dotenv').config();
 
 
@@ -15,24 +13,36 @@ router.get('/healthz', (req, res) => {
   res.sendStatus(200);
 });
 
-const BASE_URL = process.env.BASE_URL;
-
 /* GET ALL reviews.*/
-/*
-router.get('/', async function(req, res, next) {
+router.get('/', authenticateAndAuthorize(['Admin']), async function(req, res, next) {
+  /*
+    #swagger.tags = ['Admin']
+    #swagger.summary = "Get all the reviews"
+    #swagger.description = "Get all the reviews of books and reading lists"
+    #swagger.security = [{
+        "bearerAuth": []
+      }]
+  */
   try{
     let book_reviews = await BookReview.find();
     let reading_list_reviews = await ReadingListReview.find();
     res.json({book_reviews,reading_list_reviews}); 
   }catch(err){
-    debug("DB problem",err);
+    console.error("DB problem",err);
     res.sendStatus(500);
   }
 });
-*/
+
 /* GET reviews of every book*/
-/*
-router.get('/books', async function(req, res, next) {
+router.get('/books',authenticateAndAuthorize(['Admin']), async function(req, res, next) {
+   /*
+    #swagger.tags = ['Admin']
+    #swagger.summary = "Get all the reviews of every book"
+    #swagger.description = "Get all the reviews of books"
+    #swagger.security = [{
+        "bearerAuth": []
+      }]
+  */
   try{
     let books_reviews = await BookReview.find();
     if(books_reviews.length == 0){
@@ -46,8 +56,15 @@ router.get('/books', async function(req, res, next) {
 });
 
 /* GET reviews of every reading list*/
-/*
-router.get('/reading_lists', async function(req, res, next) {
+router.get('/reading_lists',authenticateAndAuthorize(['Admin']), async function(req, res, next) {
+  /*
+    #swagger.tags = ['Admin']
+    #swagger.summary = "Get all the reviews of every reading list"
+    #swagger.description = "Get all the reviews of every reading list"
+    #swagger.security = [{
+        "bearerAuth": []
+      }]
+  */
   try{
     let reading_lists_reviews = await ReadingListReview.find();
     if(reading_lists_reviews.length == 0){
@@ -59,7 +76,6 @@ router.get('/reading_lists', async function(req, res, next) {
     res.sendStatus(500);
   }
 });
-*/
 
 /* GET all reviews of a specified book*/
 router.get('/books/bk/:bookID',  authenticateAndAuthorize(['User', 'Admin']), async function(req, res, next) {
@@ -75,19 +91,13 @@ router.get('/books/bk/:bookID',  authenticateAndAuthorize(['User', 'Admin']), as
   const token = req.headers.authorization.split(' ')[1];
   try{
     let book_reviews = await BookReview.find({book_id : id});
-    console.log('book_reviews:', book_reviews);
     if(book_reviews.length == 0){
       return res.status(404).json({ message: "No reviews found for this book." });
     }
     const reviewsWithUserInfo = await Promise.all(book_reviews.map(async (review) => {
-      console.log('Dati utente:', await getUserInfo());
       const user = await getUserInfo(review.user_id, token);
-      console.log('Dati utente:', user);
-      console.log('Dati utente 2:', { ...review._doc, user });
       return { ...review._doc, user };
     }));
-    //console.log('Dati utente 3:', res.json(reviewsWithUserInfo));
-    console.log('Dati utente 3:', reviewsWithUserInfo);
     return res.json(reviewsWithUserInfo);
   }catch(err){
     console.error("DB problem",err);
@@ -293,27 +303,20 @@ router.post('/reading_lists',  authenticateAndAuthorize(['User', 'Admin']), asyn
   session.startTransaction();
   try {
     // Save the reading list review within the transaction
-    console.log('Here:' );
     await reading_list_review.save({ session });
-    console.log('Here0:' );
     try {
-      console.log('Here1:');
       await updateReadingListScore(reading_list_id, token, score,'post'); // Update the reading list score
-      console.log('here2 :');
     } catch (error) {
       //The reading list score was not updated, we abort the transaction (we don't save the review)
       await session.abortTransaction();
       session.endSession();
-      console.log('here3 :');
       return res.status(500).json({ message: 'An error occurred while updating the reading list score. Please try again later' });
     }
-
     //Everything went well, we commit the transaction
     await session.commitTransaction();
     session.endSession();
-    return res.status(201).json({ message: 'Review created successfully', book_review });
+    return res.status(201).json({ message: 'Review created successfully', reading_list_review });
   } catch (err) {
-    console.log('here4 :');
     await session.abortTransaction(); // Abort in case of failure
     session.endSession();
     if (err.code === 11000) {
@@ -323,11 +326,9 @@ router.post('/reading_lists',  authenticateAndAuthorize(['User', 'Admin']), asyn
       return res.status(400).send(err.message);
     }
     console.error("DB problem", err);
-    console.log('here5 :');
     return res.sendStatus(500);
   }
 });
-
 /*PUT a review of a book*/
 router.put('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), async function(req, res,next){
   /*
@@ -503,7 +504,6 @@ router.delete('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), a
 
   try {
     const deletedBook= await BookReview.findByIdAndDelete(reviewID);
-
     if (!deletedBook) {
       await session.abortTransaction();
       session.endSession();
@@ -529,7 +529,4 @@ router.delete('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), a
   }
 }); 
 
-module.exports = {
-  router,  // Esporta il router
-  getUserInfo  // Esporta anche le funzioni
-};
+module.exports = router;

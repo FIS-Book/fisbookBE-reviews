@@ -4,12 +4,10 @@ const secretKey = process.env.JWT_SECRET;
 
 const authenticateAndAuthorize = (roles) => {
   return (req, res, next) => {
-    console.log('here:', roles);
     const authHeader = req.headers.authorization;
 
     // Verify if the token is present
     if (!authHeader) {
-      console.log('here1 :', roles);
       return res.status(401).json({ message: 'Token not provided.' });
     }
 
@@ -29,12 +27,10 @@ const authenticateAndAuthorize = (roles) => {
       // Check if the user has the necessary role
       const userRole = req.user?.rol;
       if (!userRole) {
-        console.log('here2:', roles);
         return res.status(403).json({ message: 'Access denied: No role information found in token.' });
       }
 
       if (!roles.includes(userRole)) {
-        console.log('here3:', roles);
         console.warn(`Unauthorized access attempt. Role: ${userRole}`);
         return res.status(403).json({ message: 'Access denied: You do not have the necessary permissions.' });
       }

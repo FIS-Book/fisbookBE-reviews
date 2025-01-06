@@ -1,6 +1,4 @@
 var axios = require('axios');
-const authenticateAndAuthorize = require('../authentication/authenticateAndAuthorize');
-console.log(authenticateAndAuthorize);
 require('dotenv').config();
 
 
@@ -10,29 +8,31 @@ const CATALOGUE_SERVICE_URL = BASE_URL + process.env.MS_CATALOGUE_URL;
 const READING_LIST_SERVICE_URL = BASE_URL + process.env.MS_READING_LIST_URL;
 
 const axiosInstance = axios.create({
-    timeout: 5000 // Timeout de 5 segundos
+  timeout: 5000 // Timeout de 5 segundos
 });
-  
+
 // Auxiliar functions 
 async function getUserInfo(userID, token) {
+  // #swagger.ignore = true
   try {
-    console.log("userInfoOriginal");
-    const response = await axiosInstance.get(`${USER_SERVICE_URL}/${userID}`, {
+    const response = await axiosInstance.get(`${USER_SERVICE_URL}/users/${userID}`, {
+      // #swagger.ignore = true
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
     return response.data;
   } catch (err) {
-    console.log("userInfoOriginal error");
     console.error(`Error fetching user info for userID ${userID}`, err);
     return null;
   }
 }
 
 async function getBookTitle(ISBN,token) {
+  // #swagger.ignore = true
   try {
     const response = await axiosInstance.get(`${CATALOGUE_SERVICE_URL}/isbn/${ISBN}`, {
+      // #swagger.ignore = true
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -45,8 +45,10 @@ async function getBookTitle(ISBN,token) {
 }
 
 async function getReadingListTitle(genreID,token){
+  // #swagger.ignore = true
   try {
     const response = await axiosInstance.get(`${READING_LIST_SERVICE_URL}/genres?genreId=${genreID}`, {
+      // #swagger.ignore = true
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -59,8 +61,10 @@ async function getReadingListTitle(genreID,token){
 }
 
 async function updateBookScore(ISBN,token,score,method) {
+  // #swagger.ignore = true
   try {
     let book = await axiosInstance.get(`${CATALOGUE_SERVICE_URL}/ISBN/${ISBN}`, {
+      // #swagger.ignore = true
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -81,7 +85,11 @@ async function updateBookScore(ISBN,token,score,method) {
       let old_nreviews = book.data.totalReviews;
       let old_score = book.data.totalRating;
       new_nreviews = old_nreviews - 1;
-      new_score = (old_score * old_nreviews - score) / new_nreviews;
+      if (new_nreviews === 0) {
+        new_score = 0;
+      } else {
+        new_score = (old_score * old_nreviews - score) / new_nreviews;
+      }
     }else{
       console.error("Method not supported");
       return null
@@ -89,6 +97,7 @@ async function updateBookScore(ISBN,token,score,method) {
     
     try {
       const response = await axiosInstance.patch(`${CATALOGUE_SERVICE_URL}/${ISBN}/review`, {
+        // #swagger.ignore = true
         "totalRating": new_score,
         "totalReviews": new_nreviews
       }, {
@@ -109,8 +118,10 @@ async function updateBookScore(ISBN,token,score,method) {
 
 
 async function updateReadingListScore(genreID,token,score,method) {
+  // #swagger.ignore = true
   try {
     let readingList = await axiosInstance.get(`${READING_LIST_SERVICE_URL}/genres?genreId=${genreID}`, {
+      // #swagger.ignore = true
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -127,13 +138,18 @@ async function updateReadingListScore(genreID,token,score,method) {
       new_score = (old_score * old_nreviews + diff) / new_nreviews;
     }else if (method == 'delete'){
       new_nreviews = old_nreviews - 1;
-      new_score = (old_score * old_nreviews - score) / new_nreviews;
+      if (new_nreviews === 0) {
+        new_score = 0;
+      } else {
+        new_score = (old_score * old_nreviews - score) / new_nreviews;
+      }
     }else{
       console.error("Method not supported");
       return null
     }
     try {
       const response = await axiosInstance.get(`${READING_LIST_SERVICE_URL}/readings/update-genre`, {
+        // #swagger.ignore = true
         "genreId": genreID,
         "score": new_score,
         "numberReviews": new_nreviews
@@ -152,5 +168,6 @@ async function updateReadingListScore(genreID,token,score,method) {
     return null;
   }
 }
+
 module.exports= {getUserInfo, getBookTitle, getReadingListTitle, updateBookScore, updateReadingListScore}
   
