@@ -71,19 +71,16 @@ async function updateBookScore(ISBN,token,score,method) {
     });
     let new_nreviews;
     let new_score;
+    let old_nreviews = book.data.totalReviews;
+    let old_score = book.data.totalRating;
     if(method == 'post'){
-      let old_nreviews = book.data.totalReviews;
-      let old_score = book.data.totalRating;
       new_nreviews = old_nreviews + 1;
       new_score = (old_score * old_nreviews + score) / new_nreviews;
     }else if(method == 'put'){
-      let old_score = book.data.totalRating;
       new_nreviews = book.data.totalReviews;
       let diff = score - old_score;
       new_score = (old_score * old_nreviews + diff) / new_nreviews;
     }else if (method == 'delete'){
-      let old_nreviews = book.data.totalReviews;
-      let old_score = book.data.totalRating;
       new_nreviews = old_nreviews - 1;
       if (new_nreviews === 0) {
         new_score = 0;
