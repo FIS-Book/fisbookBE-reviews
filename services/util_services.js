@@ -144,7 +144,7 @@ async function updateReadingListScore(genreID,token,old_score, score,method) {
       return null
     }
     try {
-      const response = await axiosInstance.get(`${READING_LIST_SERVICE_URL}/readings/update-genre`, {
+      const response = await axiosInstance.get(`${READING_LIST_SERVICE_URL}/update-genre`, {
         // #swagger.ignore = true
         "genreId": genreID,
         "score": new_score,
