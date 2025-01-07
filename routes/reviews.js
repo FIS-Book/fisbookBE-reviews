@@ -346,7 +346,9 @@ router.put('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), asyn
   const session = await BookReview.startSession();
   session.startTransaction();
   try{
+    console.log("here")
     const old_review = await BookReview.findById(reviewID);
+    console.log("here1",old_review)
     if (!old_review) {
       await session.abortTransaction();
       session.endSession();
@@ -357,7 +359,7 @@ router.put('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), asyn
       { score, title, comment, lastUpdate: Date.now() },
       { new: true, runValidators: true, session }
     );
-
+    console.log("here2",updatedReview)
     if (!updatedReview) {
       await session.abortTransaction();
       session.endSession();
@@ -367,10 +369,12 @@ router.put('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), asyn
     try {
       // Now we update the book score
       let old_score = old_review.score;
+      console.log("here3",old_score)
       await updateBookScore(updatedReview.book_id, token,score, 'put',old_score);
     } catch (error) {// Abort in case of failure updating the book score
       await session.abortTransaction(); 
       session.endSession();
+      console.log("here4",error)
       return res.status(500).json({ message: "An error occurred while updating the book score." });
     }
 
@@ -387,6 +391,7 @@ router.put('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), asyn
       return res.status(400).send(err.message);
     }
     console.error("DB problem", err);
+    console.log("here5",err)
     return res.sendStatus(500);
   }
 }); 
