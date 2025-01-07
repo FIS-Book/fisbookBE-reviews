@@ -60,7 +60,7 @@ async function getReadingListTitle(genreID,token){
   }
 }
 
-async function updateBookScore(ISBN,token,score,method) {
+async function updateBookScore(ISBN,token,old_score,score,method) {
   // #swagger.ignore = true
   try {
     let book = await axiosInstance.get(`${CATALOGUE_SERVICE_URL}/ISBN/${ISBN}`, {
@@ -72,19 +72,19 @@ async function updateBookScore(ISBN,token,score,method) {
     let new_nreviews;
     let new_score;
     let old_nreviews = book.data.totalReviews;
-    let old_score = book.data.totalRating;
+    let old_totalRating = book.data.totalRating;
     if(method == 'post'){
       new_nreviews = old_nreviews + 1;
-      new_score = (old_score * old_nreviews + score) / new_nreviews;
+      new_score = (old_totalRating * old_nreviews + score) / new_nreviews;
     }else if(method == 'put'){
       new_nreviews = old_nreviews;
-      new_score = (old_score * old_nreviews - old_score + score) / new_nreviews;
+      new_score = (old_totalRating * old_nreviews - old_score + score) / new_nreviews;
     }else if (method == 'delete'){
       new_nreviews = old_nreviews - 1;
       if (new_nreviews === 0) {
         new_score = 0;
       } else {
-        new_score = (old_score * old_nreviews - score) / new_nreviews;
+        new_score = (old_totalRating * old_nreviews - score) / new_nreviews;
       }
     }else{
       console.error("Method not supported");
@@ -113,7 +113,7 @@ async function updateBookScore(ISBN,token,score,method) {
 }
 
 
-async function updateReadingListScore(genreID,token,score,method) {
+async function updateReadingListScore(genreID,token,old_score, score,method) {
   // #swagger.ignore = true
   try {
     let readingList = await axiosInstance.get(`${READING_LIST_SERVICE_URL}/genres?genreId=${genreID}`, {
@@ -124,20 +124,20 @@ async function updateReadingListScore(genreID,token,score,method) {
     });
     let new_nreviews;
     let new_score;
-    let old_nreviews = readingList.data.totalReviews;
-    let old_score = readingList.data.totalRating;
+    let old_nreviews = readingList.data.numberReviews;
+    let old_totalRating = readingList.data.score;
     if(method == 'post'){
       new_nreviews = old_nreviews + 1;
-      new_score = (old_score * old_nreviews + score) / new_nreviews;
+      new_score = (old_totalRating * old_nreviews + score) / new_nreviews;
     }else if(method == 'put'){
       new_nreviews = old_nreviews;
-      new_score = (old_score * old_nreviews - old_score + score) / new_nreviews;
+      new_score = (old_totalRating * old_nreviews - old_score + score) / new_nreviews;
     }else if (method == 'delete'){
       new_nreviews = old_nreviews - 1;
       if (new_nreviews === 0) {
         new_score = 0;
       } else {
-        new_score = (old_score * old_nreviews - score) / new_nreviews;
+        new_score = (old_totalRating * old_nreviews - score) / new_nreviews;
       }
     }else{
       console.error("Method not supported");
