@@ -1,24 +1,35 @@
 {
   "name": "fisbookbe-reviews",
-  "version": "0.0.1",
-  "description": "This is the microservice dedicated to the reviews in the FISBook app",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "version": "0.0.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/FIS-Book/fisbookBE-reviews.git"
+    "url": "https://github.com/FIS-Book/fisbookBE-reviews.git"
   },
-  "author": "Lepore, Donato and López Durán, Noelia",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/FIS-Book/fisbookBE-reviews/issues"
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www",
+    "swagger-autogen": "node swagger.js",
+    "test": "jest",
+    "integration": "jest -c jest.integration.config.js"
   },
-  "homepage": "https://github.com/FIS-Book/fisbookBE-reviews#readme",
   "dependencies": {
-    "express": "^4.21.1",
-    "fisbookbe-reviews": "file:"
+    "axios": "^1.7.9",
+    "cookie-parser": "~1.4.4",
+    "cors": "^2.8.5",
+    "debug": "~2.6.9",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "fisbookbe-reviews": "file:",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.8.2",
+    "morgan": "~1.9.1",
+    "swagger-autogen": "^2.23.7",
+    "swagger-ui-express": "^5.0.1",
+    "url-join": "^4.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-extended": "^4.0.2",
+    "supertest": "^7.0.0"
   }
 }
