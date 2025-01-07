@@ -367,7 +367,7 @@ router.put('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), asyn
     try {
       // Now we update the book score
       let old_score = old_review.score;
-      await updateBookScore(updatedReview.book_id, token,old_score, score, 'put');
+      await updateBookScore(updatedReview.book_id, token,score, 'put',old_score);
     } catch (error) {// Abort in case of failure updating the book score
       await session.abortTransaction(); 
       session.endSession();
@@ -428,7 +428,7 @@ router.put('/reading_lists/:reviewID', authenticateAndAuthorize(['User', 'Admin'
     try {
       // Now we update the reading list score
       let old_score = old_review.score;
-      await updateReadingListScore(updatedReview.reading_list_id, token, old_score, score, 'put');
+      await updateReadingListScore(updatedReview.reading_list_id, token, score, 'put',old_score);
     } catch (error) {// Abort in case of failure updating the reading list score
       await session.abortTransaction(); 
       session.endSession();

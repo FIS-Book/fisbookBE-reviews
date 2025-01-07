@@ -60,7 +60,7 @@ async function getReadingListTitle(genreID,token){
   }
 }
 
-async function updateBookScore(ISBN,token,old_score,score,method) {
+async function updateBookScore(ISBN,token,score,method,old_score=0) {
   // #swagger.ignore = true
   try {
     let book = await axiosInstance.get(`${CATALOGUE_SERVICE_URL}/ISBN/${ISBN}`, {
@@ -113,7 +113,7 @@ async function updateBookScore(ISBN,token,old_score,score,method) {
 }
 
 
-async function updateReadingListScore(genreID,token,old_score, score,method) {
+async function updateReadingListScore(genreID,token,score,method,old_score=0) {
   // #swagger.ignore = true
   try {
     let readingList = await axiosInstance.get(`${READING_LIST_SERVICE_URL}/genres?genreId=${genreID}`, {
