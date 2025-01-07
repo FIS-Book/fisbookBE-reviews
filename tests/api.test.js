@@ -576,38 +576,48 @@ describe('FISReviews API', () => {
                 endSession: jest.fn()
             };
             dbSession=jest.spyOn(BookReview, 'startSession');
+            dbFindById= jest.spyOn(BookReview, 'findById');
             dbFindByIdAndUpdate=jest.spyOn(BookReview, 'findByIdAndUpdate');
             dbSave=jest.spyOn(BookReview.prototype, 'save');
         });
         it('Should return 200 and update the specified review of a book if everything is ok', async () => {
-            const bookReview = new BookReview({
+            const oldBookReview = new BookReview({
                 book_id: '1',
                 user_id: '1',
-                score: 4,
-                title: 'Good book!',
-                comment: 'I like it!'
+                score: 5,
+                title: 'Great book!',
+                comment: 'I loved it!'
             });
             const bookReviewUpdate = {
                 score: 4,
                 title: 'Good book!',
                 comment: 'I like it!'
             };
-            const reviewID = bookReview._id;
+            const reviewID = oldBookReview._id;
             newdate= new Date().toISOString();
-            dbFindByIdAndUpdate.mockImplementation(() => Promise.resolve({...bookReview._doc, lastUpdate: newdate}));
+            dbFindByIdAndUpdate.mockImplementation(() => Promise.resolve({...oldBookReview._doc,
+                score: bookReviewUpdate.score,
+                title: bookReviewUpdate.title,
+                comment: bookReviewUpdate.comment,
+                lastUpdate: newdate}));
+            dbFindById.mockImplementation(() => Promise.resolve(oldBookReview));
             dbSave.mockImplementation(() => Promise.resolve(true));
             dbSession.mockImplementation(() => Promise.resolve(mockSession));
             return await request(app).put(`/api/v1/reviews/books/${reviewID}`).set('Authorization', 'Bearer token').send(bookReviewUpdate).then(response => {
                 expect(response.statusCode).toBe(200);
                 expect(response.body).toEqual(
-                    {   
-                    ...bookReview._doc,
+                    {
+                    ...oldBookReview._doc,
+                    score: bookReviewUpdate.score,
+                    title: bookReviewUpdate.title,
+                    comment: bookReviewUpdate.comment,
                     _id: reviewID.toString(),
-                    createdAt: bookReview.createdAt.toISOString(),
+                    createdAt: oldBookReview.createdAt.toISOString(),
                     lastUpdate: newdate
                     }
                 );
                 expect(dbFindByIdAndUpdate).toBeCalled();
+                expect(dbFindById).toBeCalled();
                 expect(util_services.updateBookScore).toHaveBeenCalled();
                 expect(mockSession.startTransaction).toHaveBeenCalled();
                 expect(mockSession.commitTransaction).toHaveBeenCalled();
@@ -615,30 +625,42 @@ describe('FISReviews API', () => {
             });
         });
         it('Should return 404 if the specified review of the book is not found', async () => {
-            const reviewID = "rev_id";
+            const oldBookReview = null;
             const bookReviewUpdate = {
-                score: 5,
-                title: 'Great book!',
-                comment: 'I loved it!'
+                score: 4,
+                title: 'Good book!',
+                comment: 'I like it!'
             };
-            const bookReview = null;
-            dbFindByIdAndUpdate.mockImplementation(() => Promise.resolve(bookReview));
+            const reviewID = "not_existing_rev_id";
+            dbFindByIdAndUpdate.mockImplementation(() => Promise.resolve(null));
+            dbFindById.mockImplementation(() => Promise.resolve(oldBookReview));
+            dbSession.mockImplementation(() => Promise.resolve(mockSession));
             return await request(app).put(`/api/v1/reviews/books/${reviewID}`).set('Authorization', 'Bearer token').send(bookReviewUpdate).then(response => {
                 expect(response.statusCode).toBe(404);
                 expect(response.body).toEqual({ message: "Review not found." });
-                expect(dbFindByIdAndUpdate).toBeCalled();
+                expect(dbFindById).toBeCalled();
                 expect(mockSession.abortTransaction).toHaveBeenCalled();
                 expect(mockSession.endSession).toHaveBeenCalled();
             });
         });
         it('Should return 500 if there is a problem with the database', async () => {
-            const reviewID = "rev_id";
-            const bookReviewUpdate = {
+            
+            const oldBookReview = new BookReview({
+                book_id: '1',
+                user_id: '1',
                 score: 5,
                 title: 'Great book!',
                 comment: 'I loved it!'
+            });
+            const bookReviewUpdate = {
+                score: 4,
+                title: 'Good book!',
+                comment: 'I like it!'
             };
+            const reviewID = oldBookReview._id;
             dbFindByIdAndUpdate.mockImplementation(() => Promise.reject(new Error('DB problem')));
+            dbFindById.mockImplementation(() => Promise.resolve(oldBookReview));
+            dbSession.mockImplementation(() => Promise.resolve(mockSession));
             return await request(app).put(`/api/v1/reviews/books/${reviewID}`).set('Authorization', 'Bearer token').send(bookReviewUpdate).then(response => {
                 expect(response.statusCode).toBe(500);
                 expect(dbFindByIdAndUpdate).toBeCalled();
@@ -647,8 +669,7 @@ describe('FISReviews API', () => {
             });
         });
         it('Should return 500 if there is a problem in updating the book score', async () => {
-            const reviewID = "rev_id";
-            const bookReview = new BookReview({
+            const oldBookReview = new BookReview({
                 book_id: '1',
                 user_id: '1',
                 score: 5,
@@ -656,11 +677,17 @@ describe('FISReviews API', () => {
                 comment: 'I loved it!'
             });
             const bookReviewUpdate = {
-                score: 5,
-                title: 'Great book!',
-                comment: 'I loved it!'
+                score: 4,
+                title: 'Good book!',
+                comment: 'I like it!'
             };
-            dbFindByIdAndUpdate.mockImplementation(() => Promise.resolve(bookReview));
+            const reviewID = oldBookReview._id;
+            dbFindByIdAndUpdate.mockImplementation(() => Promise.resolve({...oldBookReview._doc,
+                score: bookReviewUpdate.score,
+                title: bookReviewUpdate.title,
+                comment: bookReviewUpdate.comment,
+                lastUpdate: newdate}));
+            dbFindById.mockImplementation(() => Promise.resolve(oldBookReview));
             dbSession.mockImplementation(() => Promise.resolve(mockSession));
             util_services.updateBookScore.mockImplementation(() => { throw new Error('Error in the update of the score'); });
             return await request(app).put(`/api/v1/reviews/books/${reviewID}`).set('Authorization', 'Bearer token').send(bookReviewUpdate).then(response => {
@@ -682,36 +709,44 @@ describe('FISReviews API', () => {
                 endSession: jest.fn()
             };
             dbSession=jest.spyOn(ReadingListReview, 'startSession');
+            dbFindById = jest.spyOn(ReadingListReview, 'findById');
             dbFindByIdAndUpdate=jest.spyOn(ReadingListReview, 'findByIdAndUpdate');
             dbSave=jest.spyOn(ReadingListReview.prototype, 'save');
         });
         it('Should return 200 and update the specified review of a reading list if everything is ok', async () => {
-            const readingListReview = new ReadingListReview({
+            const oldReadingListReview = new ReadingListReview({
                 reading_list_id: '1',
                 user_id: '1',
                 score: 5,
                 comment: 'Great reading list!'
             });
             const readingListReviewUpdate = {
-                score: 5,
-                comment: 'Great reading list!'
+                score: 4,
+                comment: 'Good reading list!'
             }
-            const reviewID = readingListReview._id;
+            const reviewID = oldReadingListReview._id;
             newdate= new Date().toISOString();
-            dbFindByIdAndUpdate.mockImplementation(() => Promise.resolve({...readingListReview._doc, lastUpdate: newdate}));
+            dbFindByIdAndUpdate.mockImplementation(() => Promise.resolve({...oldReadingListReview._doc,
+                score: readingListReviewUpdate.score,
+                comment: readingListReviewUpdate.comment,
+                lastUpdate: newdate}));
+            dbFindById.mockImplementation(() => Promise.resolve(oldReadingListReview));
             dbSave.mockImplementation(() => Promise.resolve(true));
             dbSession.mockImplementation(() => Promise.resolve(mockSession));
             return await request(app).put(`/api/v1/reviews/reading_lists/${reviewID}`).set('Authorization', 'Bearer token').send(readingListReviewUpdate).then(response => {
                 expect(response.statusCode).toBe(200);
                 expect(response.body).toEqual(
                     {   
-                    ...readingListReview._doc,
+                    ...oldReadingListReview._doc,
+                    score: readingListReviewUpdate.score,
+                    comment: readingListReviewUpdate.comment,
                     _id: reviewID.toString(),
-                    createdAt: readingListReview.createdAt.toISOString(),
+                    createdAt: oldReadingListReview.createdAt.toISOString(),
                     lastUpdate: newdate
                     }
                 );
                 expect(dbFindByIdAndUpdate).toBeCalled();
+                expect(dbFindById).toBeCalled();
                 expect(util_services.updateReadingListScore).toHaveBeenCalled();
                 expect(mockSession.startTransaction).toHaveBeenCalled();
                 expect(mockSession.commitTransaction).toHaveBeenCalled();
@@ -719,28 +754,37 @@ describe('FISReviews API', () => {
             });
         });
         it('Should return 404 if the specified review of the reading list is not found', async () => {
-            const reviewID = "rev_id";
-            const readingListReview = null;
+            const oldReadingListReview = null;
             const readingListReviewUpdate = {
                 score: 5,
                 comment: 'Great reading list!'
             }
-            dbFindByIdAndUpdate.mockImplementation(() => Promise.resolve(readingListReview));
+            const reviewID = "not_existing_rev_id";
+            dbFindByIdAndUpdate.mockImplementation(() => Promise.resolve(null));
+            dbFindById.mockImplementation(() => Promise.resolve(oldReadingListReview));
             return await request(app).put(`/api/v1/reviews/reading_lists/${reviewID}`).set('Authorization', 'Bearer token').send(readingListReviewUpdate).then(response => {
                 expect(response.statusCode).toBe(404);
                 expect(response.body).toEqual({ message: "Review not found." });
-                expect(dbFindByIdAndUpdate).toBeCalled();
+                expect(dbFindById).toBeCalled();
                 expect(mockSession.abortTransaction).toHaveBeenCalled();
                 expect(mockSession.endSession).toHaveBeenCalled();
             });
         });
         it('Should return 500 if there is a problem with the database', async () => {
-            const reviewID = "rev_id";
-            const readingListReviewUpdate = {
+            const oldReadingListReview = new ReadingListReview({
+                reading_list_id: '1',
+                user_id: '1',
                 score: 5,
                 comment: 'Great reading list!'
+            });
+            const readingListReviewUpdate = {
+                score: 4,
+                comment: 'Good reading list!'
             }
+            const reviewID = oldReadingListReview._id;
             dbFindByIdAndUpdate.mockImplementation(() => Promise.reject(new Error('DB problem')));
+            dbFindById.mockImplementation(() => Promise.resolve(oldReadingListReview));
+            dbSession.mockImplementation(() => Promise.resolve(mockSession));
             return await request(app).put(`/api/v1/reviews/reading_lists/${reviewID}`).set('Authorization', 'Bearer token').send(readingListReviewUpdate).then(response => {
                 expect(response.statusCode).toBe(500);
                 expect(dbFindByIdAndUpdate).toBeCalled();
@@ -749,18 +793,22 @@ describe('FISReviews API', () => {
             });
         });
         it('Should return 500 if there is a problem in updating the reading list score', async () => {
-            const readingListReview = new ReadingListReview({
+            const oldReadingListReview = new ReadingListReview({
                 reading_list_id: '1',
                 user_id: '1',
                 score: 5,
                 comment: 'Great reading list!'
             });
             const readingListReviewUpdate = {
-                score: 5,
-                comment: 'Great reading list!'
+                score: 4,
+                comment: 'Good reading list!'
             }
-            const reviewID = readingListReview._id;
-            dbFindByIdAndUpdate.mockImplementation(() => Promise.resolve(readingListReview));
+            const reviewID = oldReadingListReview._id;
+            dbFindByIdAndUpdate.mockImplementation(() => Promise.resolve({...oldReadingListReview._doc,
+                score: readingListReviewUpdate.score,
+                comment: readingListReviewUpdate.comment,
+                lastUpdate: newdate}));
+            dbFindById.mockImplementation(() => Promise.resolve(oldReadingListReview));
             dbSession.mockImplementation(() => Promise.resolve(mockSession));
             util_services.updateReadingListScore.mockImplementation(() => { throw new Error('Error in the update of the score'); });
             return await request(app).put(`/api/v1/reviews/reading_lists/${reviewID}`).set('Authorization', 'Bearer token').send(readingListReviewUpdate).then(response => {

@@ -345,14 +345,18 @@ router.put('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), asyn
   // Start a session for the transaction
   const session = await BookReview.startSession();
   session.startTransaction();
-
   try{
+    const old_review = await BookReview.findById(reviewID);
+    if (!old_review) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ message: "Review not found." });
+    }
     const updatedReview = await BookReview.findByIdAndUpdate(
       reviewID,
       { score, title, comment, lastUpdate: Date.now() },
       { new: true, runValidators: true, session }
     );
-
     if (!updatedReview) {
       await session.abortTransaction();
       session.endSession();
@@ -361,7 +365,8 @@ router.put('/books/:reviewID', authenticateAndAuthorize(['User', 'Admin']), asyn
 
     try {
       // Now we update the book score
-      await updateBookScore(updatedReview.book_id, token, score, 'put');
+      let old_score = old_review.score;
+      await updateBookScore(updatedReview.book_id, token,score, 'put',old_score);
     } catch (error) {// Abort in case of failure updating the book score
       await session.abortTransaction(); 
       session.endSession();
@@ -401,8 +406,13 @@ router.put('/reading_lists/:reviewID', authenticateAndAuthorize(['User', 'Admin'
   // Start a session for the transaction
   const session = await ReadingListReview.startSession();
   session.startTransaction();
-
   try{
+    const old_review = await ReadingListReview.findById(reviewID);
+    if (!old_review) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ message: "Review not found." });
+    }
     const updatedReview = await ReadingListReview.findByIdAndUpdate(
       reviewID,
       { score, comment, lastUpdate: Date.now() },
@@ -416,7 +426,8 @@ router.put('/reading_lists/:reviewID', authenticateAndAuthorize(['User', 'Admin'
 
     try {
       // Now we update the reading list score
-      await updateReadingListScore(updatedReview.reading_list_id, token, score, 'put');
+      let old_score = old_review.score;
+      await updateReadingListScore(updatedReview.reading_list_id, token, score, 'put',old_score);
     } catch (error) {// Abort in case of failure updating the reading list score
       await session.abortTransaction(); 
       session.endSession();
